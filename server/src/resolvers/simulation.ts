@@ -1,12 +1,24 @@
+import { GraphQLError } from 'graphql';
 import { eq, sql } from 'drizzle-orm';
+import { deepParseJson } from 'deep-parse-json';
 
-import { SimulationStatus } from '@types';
+import {
+  MutationCreateSimulationArgs,
+  MutationUpdateSimulationArgs,
+  SimulationStatus,
+} from '@types';
 
 import { db } from '~/db/database';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables';
-import { runSimulationJob } from '~/services/job';
-import { deepParseJson } from 'deep-parse-json';
+
+import {
+  CreateSimulationValidator,
+  UpdateSimulationValidator,
+} from '~/validators/simulation';
+
 import { logger } from '~/utils/logger';
+
+import { runSimulationJob } from '~/services/job';
 
 export const simulationResolvers = {
   Query: {
@@ -43,6 +55,8 @@ export const simulationResolvers = {
           carConsumption: simulationsTable.carConsumption,
           chargingPower: simulationsTable.chargingPower,
           results: sql`COALESCE(${sqSimulationResults.results}, '[]')`.as('results'),
+          createdAt: simulationsTable.createdAt,
+          updatedAt: simulationsTable.updatedAt,
         })
         .from(simulationsTable)
         .leftJoin(
@@ -53,7 +67,11 @@ export const simulationResolvers = {
         .limit(1);
 
       if (!simulation) {
-        throw new Error('Simulation not found');
+        throw new GraphQLError('Simulation not found', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
       }
 
       const parsedSimulation = deepParseJson(simulation);
@@ -69,7 +87,11 @@ export const simulationResolvers = {
         .where(eq(simulationsTable.id, id));
 
       if (!simulation) {
-        throw new Error('Simulation not found');
+        throw new GraphQLError('Simulation not found', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
       }
 
       if (
@@ -111,11 +133,22 @@ export const simulationResolvers = {
 
       return { status: simulation.status };
     },
-    createSimulation: async (
-      _: undefined,
-      { numChargePoints, arrivalMultiplier, carConsumption, chargingPower }
-    ) => {
-      const simulation = await db
+    createSimulation: async (_: undefined, args: MutationCreateSimulationArgs) => {
+      const result = await CreateSimulationValidator.safeParseAsync(args);
+
+      if (result.success === false) {
+        throw new GraphQLError('Invalid input', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            fields: result.error.format(),
+          },
+        });
+      }
+
+      const { numChargePoints, arrivalMultiplier, carConsumption, chargingPower } =
+        result.data;
+
+      const [simulation] = await db
         .insert(simulationsTable)
         .values({
           numChargePoints,
@@ -127,11 +160,22 @@ export const simulationResolvers = {
 
       return simulation;
     },
-    updateSimulation: async (
-      _: undefined,
-      { id, numChargePoints, arrivalMultiplier, carConsumption, chargingPower }
-    ) => {
-      const simulation = await db
+    updateSimulation: async (_: undefined, args: MutationUpdateSimulationArgs) => {
+      const result = await UpdateSimulationValidator.safeParseAsync(args);
+
+      if (result.success === false) {
+        throw new GraphQLError('Invalid input', {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            fields: result.error.format(),
+          },
+        });
+      }
+
+      const { id, numChargePoints, arrivalMultiplier, carConsumption, chargingPower } =
+        result.data;
+
+      const [simulation] = await db
         .update(simulationsTable)
         .set({
           numChargePoints,
@@ -142,15 +186,33 @@ export const simulationResolvers = {
         .where(eq(simulationsTable.id, id))
         .returning();
 
+      if (!simulation) {
+        throw new GraphQLError('Simulation not found', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
+      }
+
       return simulation;
     },
     deleteSimulation: async (_: undefined, { id }) => {
-      const simulation = await db
-        .delete(simulationsTable)
-        .where(eq(simulationsTable.id, id))
-        .returning();
+      const [simulation] = await db
+        .select()
+        .from(simulationsTable)
+        .where(eq(simulationsTable.id, id));
 
-      return simulation;
+      if (!simulation) {
+        throw new GraphQLError('Simulation not found', {
+          extensions: {
+            code: 'NOT_FOUND',
+          },
+        });
+      }
+
+      await db.delete(simulationsTable).where(eq(simulationsTable.id, id));
+
+      return null;
     },
   },
 };
