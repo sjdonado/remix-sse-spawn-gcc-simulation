@@ -7,6 +7,9 @@
     "paths": {
       "~/*": [
         "./src/*"
+      ],
+      "@types": [
+        "./types/graphql.ts"
       ]
     },
     "module": "ESNext",

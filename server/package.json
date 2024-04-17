@@ -11,6 +11,7 @@
     "dev": "tsx watch src/index.ts",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "codegen": "graphql-codegen --config codegen.yml",
     "db:drop": "rm -rf *.sqlite",
     "db:check": "drizzle-kit check:sqlite",
     "db:push": "drizzle-kit push:sqlite",
@@ -27,6 +28,9 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@graphql-codegen/cli": "^5.0.2",
+    "@graphql-codegen/typescript": "^4.0.6",
+    "@graphql-codegen/typescript-resolvers": "^4.0.6",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "dotenv": "^16.4.5",

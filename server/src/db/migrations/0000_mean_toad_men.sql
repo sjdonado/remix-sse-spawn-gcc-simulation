@@ -3,6 +3,7 @@ CREATE TABLE `simulations_results` (
 	`simulation_id` text NOT NULL,
 	`total_energy_charged` real NOT NULL,
 	`chargingValues` text NOT NULL,
+	`chargingEvents` text NOT NULL,
 	FOREIGN KEY (`simulation_id`) REFERENCES `simulations`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint

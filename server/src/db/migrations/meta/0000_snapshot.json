@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "a25c91ff-e189-448f-b5c9-2837d2bb344a",
+  "id": "d1088ded-8e5d-4bc4-a2cc-b3f401f4d892",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "simulations_results": {
@@ -30,6 +30,13 @@
         },
         "chargingValues": {
           "name": "chargingValues",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chargingEvents": {
+          "name": "chargingEvents",
           "type": "text",
           "primaryKey": false,
           "notNull": true,

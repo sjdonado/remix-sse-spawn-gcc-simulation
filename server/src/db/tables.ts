@@ -2,17 +2,23 @@ import { randomUUID } from 'crypto';
 
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-import type { SimulationResult } from '~/shared';
-import { ALL_SIMULATION_STATUSES, SimulationStatus } from '~/constants/enum';
+import { SimulationStatus, type SimulationResult } from '@types';
 
 export const simulationsTable = sqliteTable('simulations', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => randomUUID())
     .notNull(),
-  status: text('status', { enum: ALL_SIMULATION_STATUSES })
+  status: text('status', {
+    enum: [
+      SimulationStatus.Scheduled,
+      SimulationStatus.Running,
+      SimulationStatus.Success,
+      SimulationStatus.Failed,
+    ],
+  })
     .notNull()
-    .default(SimulationStatus.SCHEDULED),
+    .default(SimulationStatus.Scheduled),
   numChargePoints: integer('num_charge_points').notNull(),
   arrivalMultiplier: real('arrival_probability_multiplier').notNull(),
   carConsumption: integer('car_consumption').notNull(),
@@ -31,7 +37,7 @@ export const simulationsResultsTable = sqliteTable('simulations_results', {
   chargingValuesPerHour: text('chargingValues', { mode: 'json' })
     .$type<SimulationResult['chargingValuesPerHour']>()
     .notNull(),
-  chargingEvents: text('chargingValues', { mode: 'json' })
+  chargingEvents: text('chargingEvents', { mode: 'json' })
     .$type<SimulationResult['chargingEvents']>()
     .notNull(),
 });
