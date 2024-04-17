@@ -8,7 +8,11 @@ import { db } from '~/db/database.server';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
 import type { Simulation, SimulationResult } from '~/schemas/simulation';
 
-import { SimulationStatus, DONE_JOB_MESSAGE } from '~/constants/simulation';
+import {
+  SimulationStatus,
+  DONE_JOB_MESSAGE,
+  RESULTS_MESSAGE,
+} from '~/constants/simulation';
 import { logger } from '~/utils/logger.server';
 
 export const scheduleSimulation = async (
@@ -33,8 +37,15 @@ export const scheduleSimulation = async (
 export async function startSimulation(simulation: Simulation) {
   const encoder = new TextEncoder();
 
-  const encodeMessage = (message: string, percentage: number, time = Date.now()) =>
-    encoder.encode(`data: ${time},${(percentage * 100).toFixed(1)},${message}\n\n`);
+  const encodeMessage = (
+    message: string,
+    percentage: number,
+    time = Date.now(),
+    payload?: string
+  ) =>
+    encoder.encode(
+      `data: ${time}|${(percentage * 100).toFixed(1)}|${message}|${payload}\n\n`
+    );
 
   // check if simulation is not running or completed
   if ([SimulationStatus.Running, SimulationStatus.Success].includes(simulation.status)) {
@@ -47,9 +58,9 @@ export async function startSimulation(simulation: Simulation) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      const sendEvent = (message: string, percentage: number) => {
+      const sendEvent = (message: string, percentage: number, payload?: string) => {
         const time = Date.now();
-        controller.enqueue(encodeMessage(message, percentage, time));
+        controller.enqueue(encodeMessage(message, percentage, time, payload));
       };
 
       try {
@@ -91,7 +102,11 @@ export async function startSimulation(simulation: Simulation) {
 
             if (type === 'CHARGING_VALUES_PER_HOUR') {
               sendEvent(`Collecting charging values for hour ${parsedObject.time}`, 0.6);
-              chargingValuesPerHour.push(parsedObject);
+              chargingValuesPerHour.push({
+                time: parsedObject.time,
+                chargepoints: parsedObject['consumption_by_chargepoints'],
+                total: parsedObject['total'],
+              });
             }
 
             if (type === 'SUMMARY') {
@@ -99,12 +114,17 @@ export async function startSimulation(simulation: Simulation) {
 
               await db.transaction(async tx => {
                 try {
-                  await tx.insert(simulationsResultsTable).values({
-                    simulationId: simulation.id,
-                    totalEnergyConsumed: parsedObject['total_energy_consumed'],
-                    chargingValuesPerHour: chargingValuesPerHour,
-                    chargingEvents: chargingEvents,
-                  });
+                  const results = await tx
+                    .insert(simulationsResultsTable)
+                    .values({
+                      simulationId: simulation.id,
+                      totalEnergyConsumed: parsedObject['total_energy_consumed'],
+                      chargingValuesPerHour: chargingValuesPerHour,
+                      chargingEvents: chargingEvents,
+                    })
+                    .returning();
+
+                  sendEvent(RESULTS_MESSAGE, 0.9, JSON.stringify(results));
 
                   await tx
                     .update(simulationsTable)

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 
-import { useLoaderData, useRevalidator } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 
 import { db } from '~/db/database.server';
@@ -13,7 +13,11 @@ import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
 import { CreateSimulationSchema, SerializedSimulationSchema } from '~/schemas/simulation';
 
 import { logger } from '~/utils/logger.server';
-import { DONE_JOB_MESSAGE, SimulationStatus } from '~/constants/simulation';
+import {
+  DONE_JOB_MESSAGE,
+  RESULTS_MESSAGE,
+  SimulationStatus,
+} from '~/constants/simulation';
 
 import { scheduleSimulation } from '~/services/simulation.server';
 
@@ -58,15 +62,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     .select({
       simulationId: simulationsResultsTable.simulationId,
       results: sql`
-            json_group_array(
-              json_object(
-                'totalEnergyConsumed', ${simulationsResultsTable.totalEnergyConsumed},
-                'chargingValuesPerHour', ${simulationsResultsTable.chargingValuesPerHour},
-                'chargingEvents', ${simulationsResultsTable.chargingEvents},
-                'createdAt', ${simulationsResultsTable.createdAt},
-                'updatedAt', ${simulationsResultsTable.updatedAt}
-              )
-            ) `.as('results'),
+        json_group_array(
+          json_object(
+            'totalEnergyConsumed', ${simulationsResultsTable.totalEnergyConsumed},
+            'chargingValuesPerHour', ${simulationsResultsTable.chargingValuesPerHour},
+            'chargingEvents', ${simulationsResultsTable.chargingEvents},
+            'createdAt', ${simulationsResultsTable.createdAt},
+            'updatedAt', ${simulationsResultsTable.updatedAt}
+          )
+        ) `.as('results'),
     })
     .from(simulationsResultsTable)
     .groupBy(simulationsResultsTable.simulationId)
@@ -101,10 +105,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function HomePage() {
-  const revalidator = useRevalidator();
   const simulation = useLoaderData<typeof loader>();
-
-  console.log(simulation);
 
   const [loading, setLoading] = useState<
     { time: string; percentage: number; message: string } | undefined
@@ -115,13 +116,19 @@ export default function HomePage() {
       const eventSource = new EventSource(`/simulation/${simulation?.id}/start`);
 
       eventSource.onmessage = event => {
-        const [time, percentage, message] = event.data.split(',');
+        const [time, percentage, message, payload] = event.data.split('|');
 
         setLoading({ time, percentage: Number(percentage), message });
 
+        if (message == RESULTS_MESSAGE) {
+          simulation.results = deepParseJson(payload);
+        }
+
         if (message === DONE_JOB_MESSAGE) {
           eventSource.close();
-          revalidator.revalidate();
+          setTimeout(() => {
+            setLoading(undefined);
+          }, 500);
         }
       };
 
@@ -129,7 +136,7 @@ export default function HomePage() {
         eventSource.close();
       };
     }
-  }, [simulation, revalidator]);
+  }, [simulation]);
 
   useEffect(() => {
     startSearchJob();
