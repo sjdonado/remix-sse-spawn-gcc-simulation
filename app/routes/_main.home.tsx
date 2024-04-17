@@ -1,6 +1,7 @@
 import { sql, eq } from 'drizzle-orm';
 import { deepParseJson } from 'deep-parse-json';
 
+import { useCallback, useEffect, useState } from 'react';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 
@@ -12,6 +13,7 @@ import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
 import { CreateSimulationSchema, SerializedSimulationSchema } from '~/schemas/simulation';
 
 import { logger } from '~/utils/logger.server';
+import { DONE_JOB_MESSAGE, SimulationStatus } from '~/constants/simulation';
 
 import { scheduleSimulation } from '~/services/simulation.server';
 
@@ -19,8 +21,6 @@ import { Input } from '~/components/Input';
 import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
 import ChargingPointsGraph from '../components/ChargingPointsGraph';
 import ChargingSummaryTable from '../components/ChargingSummaryTable';
-import { DONE_JOB_MESSAGE, SimulationStatus } from '~/constants/simulation';
-import { useCallback, useEffect, useState } from 'react';
 import ProgressBar from '~/components/ProgressBar';
 
 const validator = withZod(CreateSimulationSchema);
@@ -132,8 +132,6 @@ export default function HomePage() {
   useEffect(() => {
     startSearchJob();
   }, [startSearchJob]);
-
-  console.log('simulation', simulation, 'loading', loading);
 
   return (
     <div className="flex w-full flex-col gap-12">

@@ -9,4 +9,4 @@ export const ALL_SIMULATION_STATUSES = Object.values(SimulationStatus) as [
   SimulationStatus
 ];
 
-export const DONE_JOB_MESSAGE = 'done';
+export const DONE_JOB_MESSAGE = 'Done!';
