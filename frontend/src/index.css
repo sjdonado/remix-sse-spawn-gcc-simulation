@@ -4,7 +4,7 @@
 
 @layer components {
   .home-input {
-    @apply flex-1 flex flex-col min-w-64;
+    @apply flex-1 flex flex-col min-w-40;
   }
 
   .home-input>label {

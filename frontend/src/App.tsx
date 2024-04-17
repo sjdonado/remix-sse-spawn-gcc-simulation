@@ -1,14 +1,14 @@
-import './index.css'
+import './index.css';
 
-import HomePage from './pages/home'
+import HomePage from './pages/home';
 
 function App() {
   return (
-    <div className="flex h-screen flex-col items-center justify-center">
-      <h1 className="mb-12 text-3xl font-bold">Charging Simulator</h1>
+    <div className="flex h-screen flex-col items-center justify-start p-12">
+      <h1 className="my-12 text-3xl font-bold">Charging Simulator</h1>
       <HomePage />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

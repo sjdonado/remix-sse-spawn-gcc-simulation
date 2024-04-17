@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import CharingValuesDayGraph, {
-  ChargingValuesDay,
-} from '../components/CharingValuesDayGraph';
+import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
+import ChargingPointsGraph from '../components/ChargingPointsGraph';
+
+export type HourlyChargingValue = {
+  hour: string;
+  chargepoints: Array<number>;
+  kW: number;
+};
 
 export default function HomePage() {
   const [formData, setFormData] = useState({
@@ -12,7 +17,7 @@ export default function HomePage() {
   });
 
   const [response, setResponse] = useState<{
-    chargingValuesPerHour: Array<ChargingValuesDay>;
+    chargingValuesPerHour: Array<HourlyChargingValue>;
   }>();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +33,11 @@ export default function HomePage() {
     setResponse({
       chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
         hour: `${i}:00`,
-        kW: Math.random() * formData.arrivalMultiplier,
+        chargepoints: Array.from(
+          { length: formData.numberOfChargePoints },
+          () => Number((Math.random() * formData.carConsumption).toFixed(2)) // not related to the simulation alg
+        ),
+        kW: Math.random() * formData.arrivalMultiplier, // not related to the simulation alg
       })),
     });
   };
@@ -42,11 +51,11 @@ export default function HomePage() {
   // };
 
   return (
-    <div className="flex flex-col gap-12">
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <div className="flex w-full flex-col gap-12">
+      <form className="m-auto flex max-w-3xl flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex gap-4">
           <div className="home-input">
-            <label>Number of Charge Points</label>
+            <label>Charge Points</label>
             <input
               type="number"
               name="numberOfChargePoints"
@@ -90,8 +99,9 @@ export default function HomePage() {
         </button>
       </form>
       {response && (
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4">
           <CharingValuesDayGraph data={response.chargingValuesPerHour} />
+          <ChargingPointsGraph data={response.chargingValuesPerHour} />
           {/* <div className="mb-4"> */}
           {/*   <h2 className="mb-2 text-xl font-bold">Charging Values (kW)</h2> */}
           {/*   <ul> */}
