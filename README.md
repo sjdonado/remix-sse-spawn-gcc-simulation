@@ -1,41 +1,36 @@
-# Setup
+# Welcome to Remix + Vite!
 
-##  logic
+📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/future/vite) for details on supported features.
 
-- local setup
+## Development
+
+Run the Vite dev server:
+
+```shellscript
+npm run dev
+```
+
+## Deployment
+
+First, build your app for production:
 
 ```sh
-brew install jupyter
-
-# open notebook in browser
-jupyter notebook ./logic/ev_charging_demand.ipynb
+npm run build
 ```
 
-- run binary
+Then run the app in production mode:
 
 ```sh
-docker build -t compiled-logic-script .
-docker run --rm -it compiled-logic-script
+npm start
 ```
 
-## frontend 
+Now you'll need to pick a host to deploy it to.
 
-- local setup
+### DIY
 
-```sh
-npm --prefix=frontend install
-npm --prefix=frontend run dev
-```
+If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
 
-## backend 
+Make sure to deploy the output of `npm run build`
 
-- local setup
-```sh
-npm --prefix=server install
-npm --prefix=server run db:push
-npm --prefix=server run db:seed all # optional
-```
-
-```sh    
-npm --prefix=server run dev
-```
+- `build/server`
+- `build/client`
