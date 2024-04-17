@@ -1,25 +1,45 @@
 import { gql } from 'apollo-server';
 
 export const typeDefs = gql`
+  enum SimulationStatus {
+    RUNNING
+    COMPLETED
+    FAILED
+  }
+
   type Simulation {
     id: ID!
     numChargePoints: Int!
-    arrivalProbabilityMultiplier: Float!
+    arrivalMultiplier: Float!
     carConsumption: Float!
     chargingPower: Float!
+    status: SimulationStatus!
   }
 
-  type SimulationResult {
-    id: ID!
-    simulationId: ID!
-    chargingValues: [Float!]!
-    totalEnergyCharged: Float!
-    chargingEvents: Int!
+  type SimulationStatusResult {
+    status: SimulationStatus!
   }
 
   type Query {
-    ping: String
-    simulations: [Simulation]
+    simulations: [Simulation!]!
     simulation(id: ID!): Simulation
+  }
+
+  type Mutation {
+    runSimulation(id: ID!): SimulationStatusResult!
+    createSimulation(
+      numChargePoints: Int!
+      arrivalMultiplier: Float!
+      carConsumption: Float!
+      chargingPower: Float!
+    ): Simulation!
+    updateSimulation(
+      id: ID!
+      numChargePoints: Int
+      arrivalMultiplier: Float
+      carConsumption: Float
+      chargingPower: Float
+    ): Simulation!
+    deleteSimulation(id: ID!): Simulation!
   }
 `;

@@ -1,6 +1,5 @@
 CREATE TABLE `simulations_results` (
 	`id` text PRIMARY KEY NOT NULL,
-	`status` text DEFAULT 'SCHEDULED' NOT NULL,
 	`simulation_id` text NOT NULL,
 	`total_energy_charged` real NOT NULL,
 	`chargingValues` text NOT NULL,
@@ -9,6 +8,7 @@ CREATE TABLE `simulations_results` (
 --> statement-breakpoint
 CREATE TABLE `simulations` (
 	`id` text PRIMARY KEY NOT NULL,
+	`status` text DEFAULT 'SCHEDULED' NOT NULL,
 	`num_charge_points` integer NOT NULL,
 	`arrival_probability_multiplier` real NOT NULL,
 	`car_consumption` integer NOT NULL,

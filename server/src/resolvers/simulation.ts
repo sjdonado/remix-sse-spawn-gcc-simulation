@@ -1,17 +1,18 @@
 import { eq } from 'drizzle-orm';
+import { SimulationStatus } from '~/constants/enum';
 
 import { db } from '~/db/database';
 import { simulationsTable } from '~/db/tables';
 
 export const simultationResolvers = {
   Query: {
-    simultations: () => {
-      const simulations = db.select().from(simulationsTable);
+    simultations: async () => {
+      const simulations = await db.select().from(simulationsTable);
 
       return simulations;
     },
-    simultation: (_, { id }) => {
-      const simulation = db
+    simultation: async (_: undefined, { id }) => {
+      const simulation = await db
         .select()
         .from(simulationsTable)
         .where(eq(simulationsTable.id, id));
@@ -20,11 +21,32 @@ export const simultationResolvers = {
     },
   },
   Mutation: {
-    createSimulation: (
-      _,
+    runSimulation: async (_: undefined, { id }) => {
+      const [simulation] = await db
+        .select()
+        .from(simulationsTable)
+        .where(eq(simulationsTable.id, id));
+
+      if (!simulation) {
+        throw new Error('Simulation not found');
+      }
+
+      if (simulation.status !== SimulationStatus.RUNNING) {
+        return { status: simulation.status };
+      }
+
+      await db
+        .update(simulationsTable)
+        .set({ status: SimulationStatus.RUNNING })
+        .where(eq(simulationsTable.id, id));
+
+      return { status: SimulationStatus.RUNNING };
+    },
+    createSimulation: async (
+      _: undefined,
       { numChargePoints, arrivalMultiplier, carConsumption, chargingPower }
     ) => {
-      const simulation = db
+      const simulation = await db
         .insert(simulationsTable)
         .values({
           numChargePoints,
@@ -36,11 +58,11 @@ export const simultationResolvers = {
 
       return simulation;
     },
-    updateSimulation: (
-      _,
+    updateSimulation: async (
+      _: undefined,
       { id, numChargePoints, arrivalMultiplier, carConsumption, chargingPower }
     ) => {
-      const simulation = db
+      const simulation = await db
         .update(simulationsTable)
         .set({
           numChargePoints,
@@ -53,8 +75,8 @@ export const simultationResolvers = {
 
       return simulation;
     },
-    deleteSimulation: (_, { id }) => {
-      const simulation = db
+    deleteSimulation: async (_: undefined, { id }) => {
+      const simulation = await db
         .delete(simulationsTable)
         .where(eq(simulationsTable.id, id))
         .returning();

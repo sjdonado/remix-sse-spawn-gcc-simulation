@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "0dd2ea69-7c58-492d-985e-2042e373d257",
+  "id": "a25c91ff-e189-448f-b5c9-2837d2bb344a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "simulations_results": {
@@ -13,14 +13,6 @@
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'SCHEDULED'"
         },
         "simulation_id": {
           "name": "simulation_id",
@@ -72,6 +64,14 @@
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'SCHEDULED'"
         },
         "num_charge_points": {
           "name": "num_charge_points",

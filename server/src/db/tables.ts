@@ -8,6 +8,9 @@ export const simulationsTable = sqliteTable('simulations', {
     .primaryKey()
     .$defaultFn(() => randomUUID())
     .notNull(),
+  status: text('status', { enum: ALL_SIMULATION_STATUSES })
+    .notNull()
+    .default(SimulationStatus.SCHEDULED),
   numChargePoints: integer('num_charge_points').notNull(),
   arrivalMultiplier: real('arrival_probability_multiplier').notNull(),
   carConsumption: integer('car_consumption').notNull(),
@@ -19,9 +22,6 @@ export const simulationsResultsTable = sqliteTable('simulations_results', {
     .primaryKey()
     .$defaultFn(() => randomUUID())
     .notNull(),
-  status: text('status', { enum: ALL_SIMULATION_STATUSES })
-    .notNull()
-    .default(SimulationStatus.SCHEDULED),
   simulationId: text('simulation_id')
     .notNull()
     .references(() => simulationsTable.id, { onDelete: 'cascade' }),

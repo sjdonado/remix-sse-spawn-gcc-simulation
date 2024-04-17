@@ -1,9 +1,13 @@
 {
-  "include": ["./src/**/*.ts"],
+  "include": [
+    "./src/**/*.ts"
+  ],
   "compilerOptions": {
     "outDir": "server",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": [
+        "./src/*"
+      ]
     },
     "module": "ESNext",
     "target": "ESNext",

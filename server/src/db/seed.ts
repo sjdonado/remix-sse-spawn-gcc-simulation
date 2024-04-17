@@ -5,6 +5,7 @@ import { faker } from '@faker-js/faker';
 
 import { connectToDatabase } from './database';
 import { simulationsResultsTable, simulationsTable } from './tables';
+import { runSimulationJob } from '~/services/job';
 
 const SEED_SIZE = 10;
 
@@ -35,25 +36,11 @@ const seedSimulationsResults = async (db: LibSQLDatabase) => {
   const data = [];
 
   for (let simulation of simulations) {
-    const chargingEvents = Math.ceil(Math.random() * simulation.numChargePoints);
+    const jobResults = runSimulationJob(simulation);
 
     data.push({
       simulationId: simulation.id,
-      totalEnergyCharged:
-        chargingEvents * simulation.arrivalMultiplier * simulation.chargingPower,
-      chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
-        hour: `${i}:00`,
-        chargepoints: Array.from({ length: simulation.numChargePoints }, () =>
-          Number((Math.random() * simulation.carConsumption).toFixed(2))
-        ),
-        kW: Math.random() * simulation.arrivalMultiplier,
-      })),
-      chargingEvents: {
-        year: chargingEvents * 24 * 365,
-        month: chargingEvents * 24 * 30,
-        week: chargingEvents * 24 * 7,
-        day: chargingEvents * 24,
-      },
+      ...jobResults,
     });
   }
 
