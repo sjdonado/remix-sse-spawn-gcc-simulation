@@ -1,3 +1,6 @@
+import path from 'path';
+import { spawn } from 'child_process';
+
 import { eq } from 'drizzle-orm';
 
 import { db } from '~/db/database.server';
@@ -50,52 +53,63 @@ export async function startSimulation(simulation: Simulation) {
 
       try {
         sendEvent('Starting simulation...', 0);
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        const chargingEvents = Math.ceil(Math.random() * simulation.numChargePoints);
+        const pythonCommand = '/usr/bin/python3';
+        const pythonScriptPath = path.resolve('./app/bin/simulation.py');
+        const pythonArgs = [
+          '--num_chargepoints',
+          simulation.numChargePoints.toString(),
+          '--charging_power',
+          simulation.chargingPower.toString(),
+          '--car_consumption',
+          simulation.carConsumption.toString(),
+        ];
 
-        const results = {
-          totalEnergyCharged:
-            chargingEvents * simulation.arrivalMultiplier * simulation.chargingPower,
-          chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
-            hour: `${i}:00`,
-            chargepoints: Array.from({ length: simulation.numChargePoints }, () =>
-              Number((Math.random() * simulation.carConsumption).toFixed(2))
-            ),
-            kW: Math.random() * simulation.arrivalMultiplier,
-          })),
-          chargingEvents: {
-            year: chargingEvents * 24 * 365,
-            month: chargingEvents * 24 * 30,
-            week: chargingEvents * 24 * 7,
-            day: chargingEvents * 24,
-          },
-        };
+        const pythonProcess = spawn(pythonCommand, [pythonScriptPath, ...pythonArgs], {
+          stdio: 'pipe',
+        });
 
-        // TODO: remove this placeholder
-        sendEvent('Message from the binary', 0.4);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve, reject) => {
+          pythonProcess.stdout.on('data', async data => {
+            const results = JSON.parse(data);
 
-        // TODO: remove this placeholder
-        sendEvent('Wrapping up', 0.6);
-        await new Promise(resolve => setTimeout(resolve, 3000));
+            sendEvent('Persisting results', 0.8);
+            await db.transaction(async tx => {
+              try {
+                await tx.insert(simulationsResultsTable).values({
+                  simulationId: simulation.id,
+                  totalEnergyConsumed: results['total_energy_consumed'],
+                  chargingValuesPerHour: results['charging_values_per_hour'],
+                  chargingEvents: {
+                    year: results['charging_events']['per_year'],
+                    month: results['charging_events']['per_month'],
+                    week: results['charging_events']['per_week'],
+                    day: results['charging_events']['per_day'],
+                  },
+                });
 
-        sendEvent('Persisting results', 0.8);
-        await db.transaction(async tx => {
-          try {
-            await tx.insert(simulationsResultsTable).values({
-              simulationId: simulation.id,
-              ...results,
+                await tx
+                  .update(simulationsTable)
+                  .set({ status: SimulationStatus.Success })
+                  .where(eq(simulationsTable.id, simulation.id));
+              } catch (error) {
+                logger.error(`[simulation] ${error}`);
+                tx.rollback();
+              }
             });
 
-            await tx
-              .update(simulationsTable)
-              .set({ status: SimulationStatus.Success })
-              .where(eq(simulationsTable.id, simulation.id));
-          } catch (error) {
-            logger.error(`[simulation] ${error}`);
-            tx.rollback();
-          }
+            resolve(1);
+          });
+
+          pythonProcess.stderr.on('data', data => {
+            reject(data);
+          });
+
+          pythonProcess.on('close', code => {
+            logger.info(
+              `[${startSimulation.name}] (${simulation.id}) python script exited with code ${code}`
+            );
+          });
         });
 
         sendEvent(DONE_JOB_MESSAGE, 1);

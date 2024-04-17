@@ -60,7 +60,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       results: sql`
             json_group_array(
               json_object(
-                'totalEnergyCharged', ${simulationsResultsTable.totalEnergyCharged},
+                'totalEnergyConsumed', ${simulationsResultsTable.totalEnergyConsumed},
                 'chargingValuesPerHour', ${simulationsResultsTable.chargingValuesPerHour},
                 'chargingEvents', ${simulationsResultsTable.chargingEvents},
                 'createdAt', ${simulationsResultsTable.createdAt},
@@ -91,6 +91,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     )
     .where(eq(simulationsTable.id, simulationId as string))
     .limit(1);
+
+  console.log('simulation', simulation);
 
   const serializedSimulation = await SerializedSimulationSchema.parseAsync({
     ...simulation,
@@ -176,7 +178,7 @@ export default function HomePage() {
       {simulation?.results && simulation.results.length > 0 && (
         <div className="flex flex-col gap-8">
           <ChargingSummaryTable
-            totalEnergyCharged={simulation.results[0].totalEnergyCharged}
+            totalEnergyConsumed={simulation.results[0].totalEnergyConsumed}
             chargingEvents={simulation.results[0].chargingEvents}
           />
           <ChargingPointsGraph data={simulation.results[0].chargingValuesPerHour} />

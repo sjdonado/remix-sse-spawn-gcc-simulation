@@ -1,9 +1,11 @@
+import { SimulationResult } from '~/schemas/simulation';
+
 const ChargingSummaryTable = ({
-  totalEnergyCharged,
+  totalEnergyConsumed,
   chargingEvents,
 }: {
-  totalEnergyCharged: number;
-  chargingEvents: { year: number; month: number; week: number; day: number };
+  totalEnergyConsumed: SimulationResult['totalEnergyConsumed'];
+  chargingEvents: SimulationResult['chargingEvents'];
 }) => (
   <div className="custom-table">
     <table className="">
@@ -16,7 +18,7 @@ const ChargingSummaryTable = ({
       <tbody>
         <tr>
           <td>Total Energy Charged</td>
-          <td>{totalEnergyCharged} kWh</td>
+          <td>{totalEnergyConsumed} kWh</td>
         </tr>
         <tr>
           <td>Charging Events per Year</td>
@@ -24,15 +26,15 @@ const ChargingSummaryTable = ({
         </tr>
         <tr>
           <td>Charging Events per Month</td>
-          <td>{chargingEvents.month}</td>
+          <td>{chargingEvents.month.length}</td>
         </tr>
         <tr>
           <td>Charging Events per Week</td>
-          <td>{chargingEvents.week}</td>
+          <td>{chargingEvents.week.length}</td>
         </tr>
         <tr>
           <td>Charging Events per Day</td>
-          <td>{chargingEvents.day}</td>
+          <td>{chargingEvents.day.length}</td>
         </tr>
       </tbody>
     </table>

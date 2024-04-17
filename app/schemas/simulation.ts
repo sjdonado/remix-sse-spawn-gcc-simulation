@@ -3,19 +3,19 @@ import { z } from 'zod';
 import { ALL_SIMULATION_STATUSES } from '~/constants/simulation';
 
 export const SimulationResultSchema = z.object({
-  totalEnergyCharged: z.number(),
+  totalEnergyConsumed: z.number(),
   chargingValuesPerHour: z.array(
     z.object({
-      hour: z.string(),
+      time: z.string(),
       chargepoints: z.array(z.number()),
-      kW: z.number(),
+      total: z.number(),
     })
   ),
   chargingEvents: z.object({
     year: z.number(),
-    month: z.number(),
-    week: z.number(),
-    day: z.number(),
+    month: z.array(z.number()),
+    week: z.array(z.number()),
+    day: z.array(z.number()),
   }),
 });
 

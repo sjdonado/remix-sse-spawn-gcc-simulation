@@ -1,7 +1,7 @@
 CREATE TABLE `simulations_results` (
 	`id` text PRIMARY KEY NOT NULL,
 	`simulation_id` text NOT NULL,
-	`total_energy_charged` real NOT NULL,
+	`total_energy_consumed` real NOT NULL,
 	`chargingValues` text NOT NULL,
 	`chargingEvents` text NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,

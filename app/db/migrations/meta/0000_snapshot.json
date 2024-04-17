@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "26b0eee4-b5b9-441d-ab4a-31736b372db6",
+  "id": "13cea170-860b-47c9-a975-5e4a1ea031b9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "simulations_results": {
@@ -21,8 +21,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "total_energy_charged": {
-          "name": "total_energy_charged",
+        "total_energy_consumed": {
+          "name": "total_energy_consumed",
           "type": "real",
           "primaryKey": false,
           "notNull": true,

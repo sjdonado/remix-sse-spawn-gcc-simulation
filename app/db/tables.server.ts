@@ -35,7 +35,7 @@ export const simulationsResultsTable = sqliteTable('simulations_results', {
   simulationId: text('simulation_id')
     .notNull()
     .references(() => simulationsTable.id, { onDelete: 'cascade' }),
-  totalEnergyCharged: real('total_energy_charged').notNull(),
+  totalEnergyConsumed: real('total_energy_consumed').notNull(),
   chargingValuesPerHour: text('chargingValues', { mode: 'json' })
     .$type<SimulationResult['chargingValuesPerHour']>()
     .notNull(),

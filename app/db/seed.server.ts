@@ -7,7 +7,6 @@ import { faker } from '@faker-js/faker';
 
 import { connectToDatabase } from './database.server';
 import { simulationsResultsTable, simulationsTable } from './tables.server';
-import { runSimulationJob } from '~/services/job.server';
 
 const SEED_SIZE = 10;
 
@@ -38,7 +37,25 @@ const seedSimulationsResults = async (db: BetterSQLite3Database) => {
   const data = [];
 
   for (const simulation of simulations) {
-    const jobResults = await runSimulationJob(simulation);
+    const chargingEvents = Math.ceil(Math.random() * simulation.numChargePoints);
+
+    const jobResults = {
+      totalEnergyConsumed:
+        chargingEvents * simulation.arrivalMultiplier * simulation.chargingPower,
+      chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
+        hour: `${i}:00`,
+        chargepoints: Array.from({ length: simulation.numChargePoints }, () =>
+          Number((Math.random() * simulation.carConsumption).toFixed(2))
+        ),
+        total: Math.random() * simulation.arrivalMultiplier,
+      })),
+      chargingEvents: {
+        year: Array(chargingEvents * 24 * 365).fill(1),
+        month: Array(chargingEvents * 24 * 30).fill(1),
+        week: Array(chargingEvents * 24 * 7).fill(1),
+        day: Array(chargingEvents * 24).fill(1),
+      },
+    };
 
     data.push({
       simulationId: simulation.id,
