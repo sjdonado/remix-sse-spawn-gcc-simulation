@@ -23,7 +23,7 @@ const ChargingPointsGraph = ({
         <ResponsiveContainer>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
+            <XAxis dataKey="time" />
             <YAxis />
             <Tooltip />
             <Legend />

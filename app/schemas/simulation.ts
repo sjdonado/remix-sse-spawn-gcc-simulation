@@ -11,12 +11,13 @@ export const SimulationResultSchema = z.object({
       total: z.number(),
     })
   ),
-  chargingEvents: z.object({
-    year: z.number(),
-    month: z.array(z.number()),
-    week: z.array(z.number()),
-    day: z.array(z.number()),
-  }),
+  chargingEvents: z.array(
+    z.object({
+      time: z.string(),
+      chargingDemand: z.number(),
+      chargeTicksRemaining: z.number(),
+    })
+  ),
 });
 
 export const SimulationSchema = z.object({

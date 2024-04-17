@@ -64,11 +64,14 @@ export async function startSimulation(simulation: Simulation) {
           simulation.chargingPower.toString(),
           '--car_consumption',
           simulation.carConsumption.toString(),
+          '--arrival_multiplier',
+          simulation.arrivalMultiplier.toString(),
         ];
 
         const pythonProcess = spawn(pythonCommand, [pythonScriptPath, ...pythonArgs]);
 
         await new Promise((resolve, reject) => {
+          const chargingEvents: SimulationResult['chargingEvents'] = [];
           const chargingValuesPerHour: SimulationResult['chargingValuesPerHour'] = [];
 
           const rl = readline.createInterface({ input: pythonProcess.stdout });
@@ -77,27 +80,30 @@ export async function startSimulation(simulation: Simulation) {
             const [type, object] = line.split('|');
             const parsedObject = JSON.parse(object);
 
+            if (type === 'CHARGING_EVENT') {
+              sendEvent(`Collecting charging event for hour ${parsedObject.time}`, 0.6);
+              chargingEvents.push({
+                time: parsedObject.time,
+                chargingDemand: parsedObject['charging_demand'],
+                chargeTicksRemaining: parsedObject['charge_ticks_remaining'],
+              });
+            }
+
             if (type === 'CHARGING_VALUES_PER_HOUR') {
-              sendEvent(`Calculating charging values for hour ${parsedObject.time}`, 0.6);
+              sendEvent(`Collecting charging values for hour ${parsedObject.time}`, 0.6);
               chargingValuesPerHour.push(parsedObject);
             }
 
             if (type === 'SUMMARY') {
-              sendEvent('Calculating summary', 0.8);
+              sendEvent('Collecting summary', 0.8);
 
-              console.log('chargingValuesPerHour', chargingValuesPerHour.length);
               await db.transaction(async tx => {
                 try {
                   await tx.insert(simulationsResultsTable).values({
                     simulationId: simulation.id,
                     totalEnergyConsumed: parsedObject['total_energy_consumed'],
                     chargingValuesPerHour: chargingValuesPerHour,
-                    chargingEvents: {
-                      year: parsedObject['charging_events']['per_year'],
-                      month: parsedObject['charging_events']['per_month'],
-                      week: parsedObject['charging_events']['per_week'],
-                      day: parsedObject['charging_events']['per_day'],
-                    },
+                    chargingEvents: chargingEvents,
                   });
 
                   await tx

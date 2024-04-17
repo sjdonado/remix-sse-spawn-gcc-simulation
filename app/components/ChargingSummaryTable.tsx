@@ -21,20 +21,8 @@ const ChargingSummaryTable = ({
           <td>{totalEnergyConsumed} kWh</td>
         </tr>
         <tr>
-          <td>Charging Events per Year</td>
-          <td>{chargingEvents.year}</td>
-        </tr>
-        <tr>
-          <td>Charging Events per Month</td>
-          <td>{chargingEvents.month.length}</td>
-        </tr>
-        <tr>
-          <td>Charging Events per Week</td>
-          <td>{chargingEvents.week.length}</td>
-        </tr>
-        <tr>
           <td>Charging Events per Day</td>
-          <td>{chargingEvents.day.length}</td>
+          <td>{chargingEvents.length}</td>
         </tr>
       </tbody>
     </table>

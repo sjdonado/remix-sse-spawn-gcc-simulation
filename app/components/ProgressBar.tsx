@@ -8,7 +8,7 @@ const ProgressBar = ({ progress, message }: { progress: number; message: string 
     if (progress === 100) {
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 500);
+      }, 200);
 
       return () => clearTimeout(timer);
     } else {
@@ -24,7 +24,7 @@ const ProgressBar = ({ progress, message }: { progress: number; message: string 
     <div
       className={clsx(
         'loading mx-4 flex flex-col items-center justify-center gap-4',
-        'transition-opacity duration-500',
+        'transition-opacity duration-200',
         progress === 100 ? 'opacity-0' : 'opacity-100'
       )}
       onTransitionEnd={() => {

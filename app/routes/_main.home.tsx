@@ -104,6 +104,8 @@ export default function HomePage() {
   const revalidator = useRevalidator();
   const simulation = useLoaderData<typeof loader>();
 
+  console.log(simulation);
+
   const [loading, setLoading] = useState<
     { time: string; percentage: number; message: string } | undefined
   >();
@@ -179,8 +181,12 @@ export default function HomePage() {
             totalEnergyConsumed={simulation.results[0].totalEnergyConsumed}
             chargingEvents={simulation.results[0].chargingEvents}
           />
-          <ChargingPointsGraph data={simulation.results[0].chargingValuesPerHour} />
-          <CharingValuesDayGraph data={simulation.results[0].chargingValuesPerHour} />
+          <ChargingPointsGraph
+            data={simulation.results[0].chargingValuesPerHour.slice(0, 24)}
+          />
+          <CharingValuesDayGraph
+            data={simulation.results[0].chargingValuesPerHour.slice(0, 24)}
+          />
         </div>
       )}
     </div>

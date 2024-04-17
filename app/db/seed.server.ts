@@ -50,7 +50,7 @@ const seedSimulationsResults = async (db: BetterSQLite3Database) => {
         total: Math.random() * simulation.arrivalMultiplier,
       })),
       chargingEvents: {
-        year: Array(chargingEvents * 24 * 365).fill(1),
+        year: chargingEvents * 24 * 365,
         month: Array(chargingEvents * 24 * 30).fill(1),
         week: Array(chargingEvents * 24 * 7).fill(1),
         day: Array(chargingEvents * 24).fill(1),
