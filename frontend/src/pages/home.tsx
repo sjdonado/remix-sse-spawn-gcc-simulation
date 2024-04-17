@@ -1,6 +1,8 @@
 import { useState } from 'react';
+
 import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
 import ChargingPointsGraph from '../components/ChargingPointsGraph';
+import ChargingSummaryTable from '../components/ChargingSummaryTable';
 
 export type HourlyChargingValue = {
   hour: string;
@@ -10,14 +12,21 @@ export type HourlyChargingValue = {
 
 export default function HomePage() {
   const [formData, setFormData] = useState({
-    numberOfChargePoints: 20,
+    numberOfChargePoints: 5,
     arrivalMultiplier: 100,
     carConsumption: 18,
     chargingPower: 11,
   });
 
   const [response, setResponse] = useState<{
+    totalEnergyCharged: number;
     chargingValuesPerHour: Array<HourlyChargingValue>;
+    chargingEvents: {
+      year: number;
+      month: number;
+      week: number;
+      day: number;
+    };
   }>();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,25 +39,28 @@ export default function HomePage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    //mocked data (not related to the simulation alg)
+
+    const chargingEvents = Math.ceil(Math.random() * formData.numberOfChargePoints);
+
     setResponse({
+      totalEnergyCharged:
+        chargingEvents * formData.arrivalMultiplier * formData.chargingPower,
       chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
         hour: `${i}:00`,
-        chargepoints: Array.from(
-          { length: formData.numberOfChargePoints },
-          () => Number((Math.random() * formData.carConsumption).toFixed(2)) // not related to the simulation alg
+        chargepoints: Array.from({ length: formData.numberOfChargePoints }, () =>
+          Number((Math.random() * formData.carConsumption).toFixed(2))
         ),
-        kW: Math.random() * formData.arrivalMultiplier, // not related to the simulation alg
+        kW: Math.random() * formData.arrivalMultiplier,
       })),
+      chargingEvents: {
+        year: chargingEvents * 24 * 365,
+        month: chargingEvents * 24 * 30,
+        week: chargingEvents * 24 * 7,
+        day: chargingEvents * 24,
+      },
     });
   };
-
-  // const totalEnergyCharged = 500;
-  // const chargingEvents = {
-  //   year: 1000,
-  //   month: 250,
-  //   week: 60,
-  //   day: 10,
-  // };
 
   return (
     <div className="flex w-full flex-col gap-12">
@@ -99,30 +111,13 @@ export default function HomePage() {
         </button>
       </form>
       {response && (
-        <div className="flex flex-col gap-4">
-          <CharingValuesDayGraph data={response.chargingValuesPerHour} />
+        <div className="flex flex-col gap-8">
+          <ChargingSummaryTable
+            totalEnergyCharged={response.totalEnergyCharged}
+            chargingEvents={response.chargingEvents}
+          />
           <ChargingPointsGraph data={response.chargingValuesPerHour} />
-          {/* <div className="mb-4"> */}
-          {/*   <h2 className="mb-2 text-xl font-bold">Charging Values (kW)</h2> */}
-          {/*   <ul> */}
-          {/*     {chargingValues.map((value, index) => ( */}
-          {/*       <li key={index}>{value}</li> */}
-          {/*     ))} */}
-          {/*   </ul> */}
-          {/* </div> */}
-          {/* <div className="mb-4"> */}
-          {/*   <h2 className="mb-2 text-xl font-bold">Total Energy Charged (kWh):</h2> */}
-          {/*   <p>{totalEnergyCharged}</p> */}
-          {/* </div> */}
-          {/* <div> */}
-          {/*   <h2 className="mb-2 text-xl font-bold">Charging Events:</h2> */}
-          {/*   <ul> */}
-          {/*     <li>Year: {chargingEvents.year}</li> */}
-          {/*     <li>Month: {chargingEvents.month}</li> */}
-          {/*     <li>Week: {chargingEvents.week}</li> */}
-          {/*     <li>Day: {chargingEvents.day}</li> */}
-          {/*   </ul> */}
-          {/* </div> */}
+          <CharingValuesDayGraph data={response.chargingValuesPerHour} />
         </div>
       )}
     </div>
