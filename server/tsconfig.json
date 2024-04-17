@@ -1,8 +1,12 @@
 {
+  "include": ["./src/**/*.ts"],
   "compilerOptions": {
-    "baseUrl": ".",
+    "outDir": "server",
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "node"
   }
 }

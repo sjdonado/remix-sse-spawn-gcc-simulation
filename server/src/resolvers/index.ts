@@ -1,4 +1,4 @@
-import { simultationResolvers } from './simulation.resolver';
+import { simultationResolvers } from './simulation';
 
 const resolvers = {
   ...simultationResolvers,
