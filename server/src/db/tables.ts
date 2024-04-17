@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto';
 
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+import type { SimulationResult } from '~/shared';
 import { ALL_SIMULATION_STATUSES, SimulationStatus } from '~/constants/enum';
 
 export const simulationsTable = sqliteTable('simulations', {
@@ -27,9 +29,9 @@ export const simulationsResultsTable = sqliteTable('simulations_results', {
     .references(() => simulationsTable.id, { onDelete: 'cascade' }),
   totalEnergyCharged: real('total_energy_charged').notNull(),
   chargingValuesPerHour: text('chargingValues', { mode: 'json' })
-    .$type<Array<{ hour: string; chargepoints: Array<number>; kW: number }>>()
+    .$type<SimulationResult['chargingValuesPerHour']>()
     .notNull(),
   chargingEvents: text('chargingValues', { mode: 'json' })
-    .$type<{ year: number; month: number; week: number; day: number }>()
+    .$type<SimulationResult['chargingEvents']>()
     .notNull(),
 });

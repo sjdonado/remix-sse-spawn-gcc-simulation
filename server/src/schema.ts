@@ -7,6 +7,25 @@ export const typeDefs = gql`
     FAILED
   }
 
+  type ChargingValuesPerHour {
+    hour: String!
+    chargepoints: [Float!]!
+    kW: Float!
+  }
+
+  type ChargingEvents {
+    year: Int!
+    month: Int!
+    week: Int!
+    day: Int!
+  }
+
+  type SimulationResult {
+    totalEnergyCharged: Float!
+    chargingValuesPerHour: [ChargingValuesPerHour!]!
+    chargingEvents: ChargingEvents!
+  }
+
   type Simulation {
     id: ID!
     numChargePoints: Int!
@@ -14,6 +33,7 @@ export const typeDefs = gql`
     carConsumption: Float!
     chargingPower: Float!
     status: SimulationStatus!
+    results: [SimulationResult!]!
   }
 
   type SimulationStatusResult {
@@ -21,6 +41,7 @@ export const typeDefs = gql`
   }
 
   type Query {
+    health: String
     simulations: [Simulation!]!
     simulation(id: ID!): Simulation
   }

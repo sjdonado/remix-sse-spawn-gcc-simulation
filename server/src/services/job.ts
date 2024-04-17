@@ -1,10 +1,15 @@
-export const runSimulationJob = (simulation: {
-  id: string;
-  numChargePoints: number;
-  arrivalMultiplier: number;
-  carConsumption: number;
-  chargingPower: number;
-}) => {
+export const runSimulationJob = async (
+  simulation: {
+    id: string;
+    numChargePoints: number;
+    arrivalMultiplier: number;
+    carConsumption: number;
+    chargingPower: number;
+  },
+  delay = 0
+) => {
+  await Promise.resolve(() => setTimeout(() => {}, delay));
+
   const chargingEvents = Math.ceil(Math.random() * simulation.numChargePoints);
 
   return {

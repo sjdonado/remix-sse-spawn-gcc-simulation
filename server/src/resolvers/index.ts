@@ -1,9 +1,9 @@
 import { healthResolvers } from './health';
-import { simultationResolvers } from './simulation';
+import { simulationResolvers } from './simulation';
 
 const resolvers = {
   ...healthResolvers,
-  ...simultationResolvers,
+  ...simulationResolvers,
 };
 
 export default resolvers;

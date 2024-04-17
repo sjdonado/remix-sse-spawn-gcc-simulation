@@ -36,7 +36,7 @@ const seedSimulationsResults = async (db: LibSQLDatabase) => {
   const data = [];
 
   for (let simulation of simulations) {
-    const jobResults = runSimulationJob(simulation);
+    const jobResults = await runSimulationJob(simulation);
 
     data.push({
       simulationId: simulation.id,

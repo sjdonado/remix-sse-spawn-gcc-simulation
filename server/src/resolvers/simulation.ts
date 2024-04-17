@@ -1,20 +1,37 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+
+import type { SimulationResult } from '~/shared';
 import { SimulationStatus } from '~/constants/enum';
 
 import { db } from '~/db/database';
-import { simulationsTable } from '~/db/tables';
+import { simulationsResultsTable, simulationsTable } from '~/db/tables';
+import { runSimulationJob } from '~/services/job';
 
-export const simultationResolvers = {
+export const simulationResolvers = {
   Query: {
-    simultations: async () => {
+    simulations: async () => {
       const simulations = await db.select().from(simulationsTable);
 
       return simulations;
     },
-    simultation: async (_: undefined, { id }) => {
+    simulation: async (_: undefined, { id }) => {
       const simulation = await db
-        .select()
+        .select({
+          id: simulationsTable.id,
+          status: simulationsTable.status,
+          numChargePoints: simulationsTable.numChargePoints,
+          arrivalMultiplier: simulationsTable.arrivalMultiplier,
+          carConsumption: simulationsTable.carConsumption,
+          chargingPower: simulationsTable.chargingPower,
+          results: sql<SimulationResult>`json_agg(${simulationsResultsTable})`.as<
+            SimulationResult[]
+          >(),
+        })
         .from(simulationsTable)
+        .leftJoin(
+          simulationsResultsTable,
+          eq(simulationsResultsTable.simulationId, simulationsTable.id)
+        )
         .where(eq(simulationsTable.id, id));
 
       return simulation;
@@ -39,6 +56,14 @@ export const simultationResolvers = {
         .update(simulationsTable)
         .set({ status: SimulationStatus.RUNNING })
         .where(eq(simulationsTable.id, id));
+
+      // results genrated in background
+      const jobResults = await runSimulationJob(simulation, 3000);
+
+      await db.insert(simulationsResultsTable).values({
+        simulationId: simulation.id,
+        ...jobResults,
+      });
 
       return { status: SimulationStatus.RUNNING };
     },

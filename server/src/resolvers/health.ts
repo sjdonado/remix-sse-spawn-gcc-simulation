@@ -1,6 +1,6 @@
 export const healthResolvers = {
   Query: {
-    ping: () => {
+    health: () => {
       return 'pong';
     },
   },
