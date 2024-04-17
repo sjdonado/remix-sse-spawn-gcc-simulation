@@ -72,8 +72,15 @@ export async function startSimulation(simulation: Simulation) {
           },
         };
 
-        sendEvent('Persisting results', 0.5);
+        // TODO: remove this placeholder
+        sendEvent('Message from the binary', 0.4);
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
+        // TODO: remove this placeholder
+        sendEvent('Wrapping up', 0.6);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        sendEvent('Persisting results', 0.8);
         await db.transaction(async tx => {
           try {
             await tx.insert(simulationsResultsTable).values({

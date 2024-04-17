@@ -21,6 +21,7 @@ import ChargingPointsGraph from '../components/ChargingPointsGraph';
 import ChargingSummaryTable from '../components/ChargingSummaryTable';
 import { DONE_JOB_MESSAGE, SimulationStatus } from '~/constants/simulation';
 import { useCallback, useEffect, useState } from 'react';
+import ProgressBar from '~/components/ProgressBar';
 
 const validator = withZod(CreateSimulationSchema);
 
@@ -104,25 +105,22 @@ export default function HomePage() {
   const simulation = useLoaderData<typeof loader>();
 
   const [loading, setLoading] = useState<
-    { time: string; percentage: string; message: string } | undefined
+    { time: string; percentage: number; message: string } | undefined
   >();
 
   const startSearchJob = useCallback(async () => {
-    if (simulation?.status === SimulationStatus.Scheduled) {
+    if (simulation && simulation?.status === SimulationStatus.Scheduled) {
       const eventSource = new EventSource(`/simulation/${simulation?.id}/start`);
 
       eventSource.onmessage = event => {
         const [time, percentage, message] = event.data.split(',');
 
+        setLoading({ time, percentage: Number(percentage), message });
+
         if (message === DONE_JOB_MESSAGE) {
           eventSource.close();
           revalidator.revalidate();
-
-          setLoading(undefined);
-          return;
         }
-
-        setLoading({ time, percentage, message });
       };
 
       return () => {
@@ -176,6 +174,7 @@ export default function HomePage() {
           Submit
         </button>
       </ValidatedForm>
+      {loading && <ProgressBar progress={loading.percentage} message={loading.message} />}
       {simulation?.results && simulation.results.length > 0 && (
         <div className="flex flex-col gap-8">
           <ChargingSummaryTable
