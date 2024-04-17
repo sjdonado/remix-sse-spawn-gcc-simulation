@@ -1,11 +1,12 @@
 import path from 'path';
 import { spawn } from 'child_process';
+import readline from 'readline';
 
 import { eq } from 'drizzle-orm';
 
 import { db } from '~/db/database.server';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
-import type { Simulation } from '~/schemas/simulation';
+import type { Simulation, SimulationResult } from '~/schemas/simulation';
 
 import { SimulationStatus, DONE_JOB_MESSAGE } from '~/constants/simulation';
 import { logger } from '~/utils/logger.server';
@@ -65,40 +66,52 @@ export async function startSimulation(simulation: Simulation) {
           simulation.carConsumption.toString(),
         ];
 
-        const pythonProcess = spawn(pythonCommand, [pythonScriptPath, ...pythonArgs], {
-          stdio: 'pipe',
-        });
+        const pythonProcess = spawn(pythonCommand, [pythonScriptPath, ...pythonArgs]);
 
         await new Promise((resolve, reject) => {
-          pythonProcess.stdout.on('data', async data => {
-            const results = JSON.parse(data);
+          const chargingValuesPerHour: SimulationResult['chargingValuesPerHour'] = [];
 
-            sendEvent('Persisting results', 0.8);
-            await db.transaction(async tx => {
-              try {
-                await tx.insert(simulationsResultsTable).values({
-                  simulationId: simulation.id,
-                  totalEnergyConsumed: results['total_energy_consumed'],
-                  chargingValuesPerHour: results['charging_values_per_hour'],
-                  chargingEvents: {
-                    year: results['charging_events']['per_year'],
-                    month: results['charging_events']['per_month'],
-                    week: results['charging_events']['per_week'],
-                    day: results['charging_events']['per_day'],
-                  },
-                });
+          const rl = readline.createInterface({ input: pythonProcess.stdout });
 
-                await tx
-                  .update(simulationsTable)
-                  .set({ status: SimulationStatus.Success })
-                  .where(eq(simulationsTable.id, simulation.id));
-              } catch (error) {
-                logger.error(`[simulation] ${error}`);
-                tx.rollback();
-              }
-            });
+          rl.on('line', async line => {
+            const [type, object] = line.split('|');
+            const parsedObject = JSON.parse(object);
 
-            resolve(1);
+            if (type === 'CHARGING_VALUES_PER_HOUR') {
+              sendEvent(`Calculating charging values for hour ${parsedObject.time}`, 0.6);
+              chargingValuesPerHour.push(parsedObject);
+            }
+
+            if (type === 'SUMMARY') {
+              sendEvent('Calculating summary', 0.8);
+
+              console.log('chargingValuesPerHour', chargingValuesPerHour.length);
+              await db.transaction(async tx => {
+                try {
+                  await tx.insert(simulationsResultsTable).values({
+                    simulationId: simulation.id,
+                    totalEnergyConsumed: parsedObject['total_energy_consumed'],
+                    chargingValuesPerHour: chargingValuesPerHour,
+                    chargingEvents: {
+                      year: parsedObject['charging_events']['per_year'],
+                      month: parsedObject['charging_events']['per_month'],
+                      week: parsedObject['charging_events']['per_week'],
+                      day: parsedObject['charging_events']['per_day'],
+                    },
+                  });
+
+                  await tx
+                    .update(simulationsTable)
+                    .set({ status: SimulationStatus.Success })
+                    .where(eq(simulationsTable.id, simulation.id));
+                } catch (error) {
+                  logger.error(`[simulation] ${error}`);
+                  tx.rollback();
+                }
+              });
+
+              resolve(1);
+            }
           });
 
           pythonProcess.stderr.on('data', data => {

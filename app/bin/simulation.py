@@ -22,7 +22,7 @@ YEAR_START = datetime.datetime(2024, 1, 1)
 DST_START = datetime.datetime(2024, 3, 10)
 DST_END = datetime.datetime(2024, 11, 3)
 
-def simulate_chargepoint_with_DTS(ticks_per_year, ticks_per_hour, chargepoint_states, total_energy_per_tick, power_demand_per_tick, charging_power, kwh_per_100km, charging_events, charging_values_per_hour):
+def simulate_chargepoint_with_DTS(ticks_per_year, ticks_per_hour, chargepoint_states, total_energy_per_tick, power_demand_per_tick, charging_power, kwh_per_100km, charging_events):
     chargepoint_consumption = [0] * ticks_per_year
 
     for tick in range(ticks_per_year):
@@ -53,11 +53,11 @@ def simulate_chargepoint_with_DTS(ticks_per_year, ticks_per_hour, chargepoint_st
 
         if tick % ticks_per_hour == 0:
             hour = tick // ticks_per_hour
-            charging_values_per_hour.append({
+            print("CHARGING_VALUES_PER_HOUR|%s" % json.dumps({
                 'time': (YEAR_START + datetime.timedelta(hours=hour)).isoformat(),
                 'chargepoints': [chargepoint_consumption[tick + i] for i in range(ticks_per_hour)],
                 'total': total_energy_per_tick[tick]
-            })
+            }))
 
 def run(num_chargepoints, charging_power, kwh_per_100km):
     ticks_per_hour = 60 // MINUTES_PER_TICK
@@ -68,10 +68,9 @@ def run(num_chargepoints, charging_power, kwh_per_100km):
     total_energy_per_tick = {tick: 0 for tick in range(ticks_per_year)}
     power_demand_per_tick = {tick: 0 for tick in range(ticks_per_year)}
     charging_events = []
-    charging_values_per_hour = []
 
     for _ in range(num_chargepoints):
-        simulate_chargepoint_with_DTS(ticks_per_year, ticks_per_hour, chargepoint_states, total_energy_per_tick, power_demand_per_tick, charging_power, kwh_per_100km, charging_events, charging_values_per_hour)
+        simulate_chargepoint_with_DTS(ticks_per_year, ticks_per_hour, chargepoint_states, total_energy_per_tick, power_demand_per_tick, charging_power, kwh_per_100km, charging_events)
 
     total_energy_consumed = sum(total_energy_per_tick.values())
     max_power_demand = max(power_demand_per_tick.values())
@@ -91,19 +90,18 @@ def run(num_chargepoints, charging_power, kwh_per_100km):
         charging_events_per_week[week_index] += 1
         charging_events_per_day[day_index] += 1
 
-    return {
+    print("SUMMARY|%s" % json.dumps({
         'total_energy_consumed': total_energy_consumed,
         'max_power_demand': max_power_demand,
         'theoretical_max_power_demand': theoretical_max_power_demand,
         'concurrency_factor': max_power_demand / theoretical_max_power_demand,
-        'charging_values_per_hour': charging_values_per_hour[:10],
         'charging_events': {
             'per_year': charging_events_per_year,
             'per_month': charging_events_per_month,
             'per_week': charging_events_per_week,
             'per_day': charging_events_per_day
         }
-    }
+    }))
 
 def main():
     parser = argparse.ArgumentParser(description='Electric vehicle charging simulation')
@@ -112,9 +110,7 @@ def main():
     parser.add_argument('--car_consumption', type=float, default=18, help='kWh consumed per 100km')
     args = parser.parse_args()
 
-    output = run(args.num_chargepoints, args.charging_power, args.car_consumption)
-
-    print(json.dumps(output, default=str))
+    run(args.num_chargepoints, args.charging_power, args.car_consumption)
 
 if __name__ == '__main__':
     main()

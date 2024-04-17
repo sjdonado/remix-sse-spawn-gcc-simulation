@@ -92,8 +92,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     .where(eq(simulationsTable.id, simulationId as string))
     .limit(1);
 
-  console.log('simulation', simulation);
-
   const serializedSimulation = await SerializedSimulationSchema.parseAsync({
     ...simulation,
     results: deepParseJson(simulation.results),
