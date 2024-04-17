@@ -1,24 +1,33 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "dev": "nodemon --exec ts-node ./src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.ts",
+    "dev": "bun --watch ./src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist",
+    "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:drop": "rm -rf *.sqlite",
+    "db:check": "drizzle-kit check:sqlite",
+    "db:migrate": "drizzle-kit generate:sqlite",
+    "db:push": "drizzle-kit push:sqlite"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "apollo-server": "^3.13.0",
-    "better-sqlite3": "^9.5.0",
     "drizzle-orm": "^0.30.8",
     "graphql": "^16.8.1",
-    "ts-node": "^10.9.2"
+    "pino": "^8.20.0",
+    "pino-pretty": "^11.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "bun-types": "^1.1.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
