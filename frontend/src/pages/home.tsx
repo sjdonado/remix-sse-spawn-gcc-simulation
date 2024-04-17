@@ -12,7 +12,7 @@ export type HourlyChargingValue = {
 
 export default function HomePage() {
   const [formData, setFormData] = useState({
-    numberOfChargePoints: 5,
+    numChargePoints: 5,
     arrivalMultiplier: 100,
     carConsumption: 18,
     chargingPower: 11,
@@ -40,15 +40,14 @@ export default function HomePage() {
     e.preventDefault();
 
     //mocked data (not related to the simulation alg)
-
-    const chargingEvents = Math.ceil(Math.random() * formData.numberOfChargePoints);
+    const chargingEvents = Math.ceil(Math.random() * formData.numChargePoints);
 
     setResponse({
       totalEnergyCharged:
         chargingEvents * formData.arrivalMultiplier * formData.chargingPower,
       chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
         hour: `${i}:00`,
-        chargepoints: Array.from({ length: formData.numberOfChargePoints }, () =>
+        chargepoints: Array.from({ length: formData.numChargePoints }, () =>
           Number((Math.random() * formData.carConsumption).toFixed(2))
         ),
         kW: Math.random() * formData.arrivalMultiplier,
@@ -70,8 +69,8 @@ export default function HomePage() {
             <label>Charge Points</label>
             <input
               type="number"
-              name="numberOfChargePoints"
-              value={formData.numberOfChargePoints}
+              name="numChargePoints"
+              value={formData.numChargePoints}
               onChange={handleChange}
               className="rounded border border-gray-300 p-2"
             />
