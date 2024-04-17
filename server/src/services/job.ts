@@ -8,7 +8,7 @@ export const runSimulationJob = async (
   },
   delay = 0
 ) => {
-  await Promise.resolve(() => setTimeout(() => {}, delay));
+  await new Promise(resolve => setTimeout(resolve, delay));
 
   const chargingEvents = Math.ceil(Math.random() * simulation.numChargePoints);
 

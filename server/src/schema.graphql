@@ -22,6 +22,8 @@ type SimulationResult {
   totalEnergyCharged: Float!
   chargingValuesPerHour: [ChargingValuesPerHour!]!
   chargingEvents: ChargingEvents!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type Simulation {
@@ -32,6 +34,8 @@ type Simulation {
   chargingPower: Float!
   status: SimulationStatus!
   results: [SimulationResult!]!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type SimulationStatusResult {
