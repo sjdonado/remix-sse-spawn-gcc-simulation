@@ -1,14 +1,10 @@
 import { useState } from 'react';
 
+import type { SimulationResult } from '~/schemas/simulation';
+
 import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
 import ChargingPointsGraph from '../components/ChargingPointsGraph';
 import ChargingSummaryTable from '../components/ChargingSummaryTable';
-
-export type HourlyChargingValue = {
-  hour: string;
-  chargepoints: Array<number>;
-  kW: number;
-};
 
 export default function HomePage() {
   const [formData, setFormData] = useState({
@@ -18,16 +14,7 @@ export default function HomePage() {
     chargingPower: 11,
   });
 
-  const [response, setResponse] = useState<{
-    totalEnergyCharged: number;
-    chargingValuesPerHour: Array<HourlyChargingValue>;
-    chargingEvents: {
-      year: number;
-      month: number;
-      week: number;
-      day: number;
-    };
-  }>();
+  const [response, setResponse] = useState<SimulationResult>();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

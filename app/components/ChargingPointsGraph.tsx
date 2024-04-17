@@ -9,7 +9,13 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const ChargingPointsGraph = ({ data }: { data: Array<any> }) => {
+import type { SimulationResult } from '~/schemas/simulation';
+
+const ChargingPointsGraph = ({
+  data,
+}: {
+  data: SimulationResult['chargingValuesPerHour'];
+}) => {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-xl font-bold">Charging Values (kW) by Chargepoint per Day</h2>
