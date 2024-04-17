@@ -4,3 +4,7 @@ export enum SimulationStatus {
   SUCCESS = 'SUCCESS',
   FAILED = 'FAILED',
 }
+
+export const ALL_SIMULATION_STATUSES = Object.values(SimulationStatus) as [
+  SimulationStatus,
+];

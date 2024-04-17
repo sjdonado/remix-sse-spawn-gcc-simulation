@@ -1,18 +1,18 @@
-import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { Database } from 'bun:sqlite';
+import { drizzle } from 'drizzle-orm/libsql';
+import { Client, createClient } from '@libsql/client';
 
 import { DATABASE_URL, LOG_LEVEL } from '~/constants/env';
 
 import { logger } from '~/utils/logger';
 
-let client;
+let client: Client;
 
 export const connectToDatabase = () => {
   if (client) {
     return client;
   }
 
-  client = new Database(DATABASE_URL);
+  client = createClient({ url: DATABASE_URL });
   logger.info('[drizzle] Database connected');
   return client;
 };

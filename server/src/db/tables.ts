@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import { SimulationStatus } from '~/constants/enum';
+import { ALL_SIMULATION_STATUSES, SimulationStatus } from '~/constants/enum';
 
 export const simulationsTable = sqliteTable('simulations', {
   id: text('id')
@@ -9,30 +9,27 @@ export const simulationsTable = sqliteTable('simulations', {
     .$defaultFn(() => randomUUID())
     .notNull(),
   numChargePoints: integer('num_charge_points').notNull(),
-  arrivalProbabilityMultiplier: real('arrival_probability_multiplier').notNull(),
-  carConsumption: real('car_consumption').notNull(),
-  chargingPower: real('charging_power').notNull(),
+  arrivalMultiplier: real('arrival_probability_multiplier').notNull(),
+  carConsumption: integer('car_consumption').notNull(),
+  chargingPower: integer('charging_power').notNull(),
 });
 
-export const simulationsOutputTable = sqliteTable('simulations_results', {
+export const simulationsResultsTable = sqliteTable('simulations_results', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => randomUUID())
     .notNull(),
-  status: text('status')
+  status: text('status', { enum: ALL_SIMULATION_STATUSES })
     .notNull()
-    .$type<
-      | SimulationStatus.SCHEDULED
-      | SimulationStatus.RUNNING
-      | SimulationStatus.SUCCESS
-      | SimulationStatus.FAILED
-    >()
     .default(SimulationStatus.SCHEDULED),
-  simulation_id: text('simulation_id')
+  simulationId: text('simulation_id')
     .notNull()
     .references(() => simulationsTable.id, { onDelete: 'cascade' }),
-  charge_point_id: text('charge_point_id').notNull(),
-  chargingValues: text('charging_values').notNull(),
   totalEnergyCharged: real('total_energy_charged').notNull(),
-  chargingEvents: integer('charging_events').notNull(),
+  chargingValuesPerHour: text('chargingValues', { mode: 'json' })
+    .$type<Array<{ hour: string; chargepoints: Array<number>; kW: number }>>()
+    .notNull(),
+  chargingEvents: text('chargingValues', { mode: 'json' })
+    .$type<{ year: number; month: number; week: number; day: number }>()
+    .notNull(),
 });

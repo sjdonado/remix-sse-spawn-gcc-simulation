@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "scripts": {
     "start": "node src/index.ts",
     "dev": "bun --watch ./src/index.ts",
@@ -11,13 +14,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:drop": "rm -rf *.sqlite",
     "db:check": "drizzle-kit check:sqlite",
+    "db:push": "drizzle-kit push:sqlite",
     "db:migrate": "drizzle-kit generate:sqlite",
-    "db:push": "drizzle-kit push:sqlite"
+    "db:seed": "tsx ./src/db/seed.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "@libsql/client": "^0.6.0",
     "apollo-server": "^3.13.0",
     "drizzle-orm": "^0.30.8",
     "graphql": "^16.8.1",
@@ -25,7 +27,10 @@
     "pino-pretty": "^11.0.0"
   },
   "devDependencies": {
-    "bun-types": "^1.1.4"
+    "@faker-js/faker": "^8.4.1",
+    "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.20.14",
+    "tsx": "^4.7.2"
   },
   "engines": {
     "node": ">=20.0.0"

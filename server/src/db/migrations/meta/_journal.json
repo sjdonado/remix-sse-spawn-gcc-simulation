@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1713351415842,
+      "tag": "0000_curvy_archangel",
+      "breakpoints": true
+    }
+  ]
+}
