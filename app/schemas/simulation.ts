@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { ALL_SIMULATION_STATUSES } from '~/constants/simulation';
+
 export const SimulationResultSchema = z.object({
   totalEnergyCharged: z.number(),
   chargingValuesPerHour: z.array(
@@ -19,6 +21,7 @@ export const SimulationResultSchema = z.object({
 
 export const SimulationSchema = z.object({
   id: z.string(),
+  status: z.enum(ALL_SIMULATION_STATUSES),
   numChargePoints: z.number(),
   arrivalMultiplier: z.number(),
   carConsumption: z.number(),

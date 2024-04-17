@@ -4,7 +4,7 @@ import { deepParseJson } from 'deep-parse-json';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useRevalidator } from '@remix-run/react';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 
 import { db } from '~/db/database.server';
@@ -13,10 +13,14 @@ import { CreateSimulationSchema, SerializedSimulationSchema } from '~/schemas/si
 
 import { logger } from '~/utils/logger.server';
 
+import { scheduleSimulation } from '~/services/simulation.server';
+
+import { Input } from '~/components/Input';
 import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
 import ChargingPointsGraph from '../components/ChargingPointsGraph';
 import ChargingSummaryTable from '../components/ChargingSummaryTable';
-import { Input } from '~/components/Input';
+import { DONE_JOB_MESSAGE, SimulationStatus } from '~/constants/simulation';
+import { useCallback, useEffect, useState } from 'react';
 
 const validator = withZod(CreateSimulationSchema);
 
@@ -31,17 +35,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { numChargePoints, arrivalMultiplier, carConsumption, chargingPower } =
     fieldValues.data;
 
-  const [simulation] = await db
-    .insert(simulationsTable)
-    .values({
-      numChargePoints,
-      arrivalMultiplier,
-      carConsumption,
-      chargingPower,
-    })
-    .returning();
+  const simulationId = await scheduleSimulation(
+    numChargePoints,
+    arrivalMultiplier,
+    carConsumption,
+    chargingPower
+  );
 
-  return redirect(`/home?id=${simulation.id}`);
+  return redirect(`/home?id=${simulationId}`);
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -99,7 +100,42 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function HomePage() {
+  const revalidator = useRevalidator();
   const simulation = useLoaderData<typeof loader>();
+
+  const [loading, setLoading] = useState<
+    { time: string; percentage: string; message: string } | undefined
+  >();
+
+  const startSearchJob = useCallback(async () => {
+    if (simulation?.status === SimulationStatus.Scheduled) {
+      const eventSource = new EventSource(`/simulation/${simulation?.id}/start`);
+
+      eventSource.onmessage = event => {
+        const [time, percentage, message] = event.data.split(',');
+
+        if (message === DONE_JOB_MESSAGE) {
+          eventSource.close();
+          revalidator.revalidate();
+
+          setLoading(undefined);
+          return;
+        }
+
+        setLoading({ time, percentage, message });
+      };
+
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [simulation, revalidator]);
+
+  useEffect(() => {
+    startSearchJob();
+  }, [startSearchJob]);
+
+  console.log('simulation', simulation, 'loading', loading);
 
   return (
     <div className="flex w-full flex-col gap-12">
@@ -109,16 +145,32 @@ export default function HomePage() {
         className="m-auto flex max-w-3xl flex-col gap-4"
       >
         <div className="flex gap-4">
-          <Input name="numChargePoints" type="number" label="Number of charge points" />
+          <Input
+            name="numChargePoints"
+            type="number"
+            label="Number of charge points"
+            defaultValue={simulation?.numChargePoints ?? 5}
+          />
           <Input
             name="arrivalMultiplier"
             type="number"
+            label="Arrival Multiplier"
             min={20}
             max={200}
-            label="Arrival Multiplier"
+            defaultValue={simulation?.arrivalMultiplier ?? 100}
           />
-          <Input name="carConsumption" type="number" label="Car Consumption" />
-          <Input name="chargingPower" type="number" label="Charging Power" />
+          <Input
+            name="carConsumption"
+            type="number"
+            label="Car Consumption"
+            defaultValue={simulation?.carConsumption ?? 18}
+          />
+          <Input
+            name="chargingPower"
+            type="number"
+            label="Charging Power"
+            defaultValue={simulation?.chargingPower ?? 11}
+          />
         </div>
         <button type="submit" className="btn">
           Submit

@@ -5,21 +5,14 @@ import { sql } from 'drizzle-orm';
 
 import type { SimulationResult } from '~/schemas/simulation';
 
-import { SimulationStatus } from '~/constants/enum';
+import { ALL_SIMULATION_STATUSES, SimulationStatus } from '~/constants/simulation';
 
 export const simulationsTable = sqliteTable('simulations', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => randomUUID())
     .notNull(),
-  status: text('status', {
-    enum: [
-      SimulationStatus.Scheduled,
-      SimulationStatus.Running,
-      SimulationStatus.Success,
-      SimulationStatus.Failed,
-    ],
-  })
+  status: text('status', { enum: ALL_SIMULATION_STATUSES })
     .notNull()
     .default(SimulationStatus.Scheduled),
   numChargePoints: integer('num_charge_points').notNull(),
