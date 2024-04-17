@@ -1,3 +1,5 @@
+scalar Void
+
 enum SimulationStatus {
   SCHEDULED
   RUNNING
@@ -33,7 +35,7 @@ type Simulation {
   carConsumption: Float!
   chargingPower: Float!
   status: SimulationStatus!
-  results: [SimulationResult!]!
+  results: [SimulationResult!]
   createdAt: String!
   updatedAt: String!
 }
@@ -63,5 +65,5 @@ type Mutation {
     carConsumption: Float
     chargingPower: Float
   ): Simulation!
-  deleteSimulation(id: ID!): Simulation!
+  deleteSimulation(id: ID!): Void
 }

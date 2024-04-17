@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -14,6 +14,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Void: { input: any; output: any; }
 };
 
 export type ChargingEvents = {
@@ -34,7 +35,7 @@ export type ChargingValuesPerHour = {
 export type Mutation = {
   __typename?: 'Mutation';
   createSimulation: Simulation;
-  deleteSimulation: Simulation;
+  deleteSimulation?: Maybe<Scalars['Void']['output']>;
   runSimulation: SimulationStatusResult;
   updateSimulation: Simulation;
 };
@@ -83,17 +84,21 @@ export type Simulation = {
   arrivalMultiplier: Scalars['Float']['output'];
   carConsumption: Scalars['Float']['output'];
   chargingPower: Scalars['Float']['output'];
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   numChargePoints: Scalars['Int']['output'];
-  results: Array<SimulationResult>;
+  results?: Maybe<Array<SimulationResult>>;
   status: SimulationStatus;
+  updatedAt: Scalars['String']['output'];
 };
 
 export type SimulationResult = {
   __typename?: 'SimulationResult';
   chargingEvents: ChargingEvents;
   chargingValuesPerHour: Array<ChargingValuesPerHour>;
+  createdAt: Scalars['String']['output'];
   totalEnergyCharged: Scalars['Float']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export enum SimulationStatus {
@@ -192,6 +197,7 @@ export type ResolversTypes = {
   SimulationStatus: SimulationStatus;
   SimulationStatusResult: ResolverTypeWrapper<SimulationStatusResult>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Void: ResolverTypeWrapper<Scalars['Void']['output']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -208,6 +214,7 @@ export type ResolversParentTypes = {
   SimulationResult: SimulationResult;
   SimulationStatusResult: SimulationStatusResult;
   String: Scalars['String']['output'];
+  Void: Scalars['Void']['output'];
 };
 
 export type ChargingEventsResolvers<ContextType = any, ParentType extends ResolversParentTypes['ChargingEvents'] = ResolversParentTypes['ChargingEvents']> = {
@@ -227,7 +234,7 @@ export type ChargingValuesPerHourResolvers<ContextType = any, ParentType extends
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createSimulation?: Resolver<ResolversTypes['Simulation'], ParentType, ContextType, RequireFields<MutationCreateSimulationArgs, 'arrivalMultiplier' | 'carConsumption' | 'chargingPower' | 'numChargePoints'>>;
-  deleteSimulation?: Resolver<ResolversTypes['Simulation'], ParentType, ContextType, RequireFields<MutationDeleteSimulationArgs, 'id'>>;
+  deleteSimulation?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType, RequireFields<MutationDeleteSimulationArgs, 'id'>>;
   runSimulation?: Resolver<ResolversTypes['SimulationStatusResult'], ParentType, ContextType, RequireFields<MutationRunSimulationArgs, 'id'>>;
   updateSimulation?: Resolver<ResolversTypes['Simulation'], ParentType, ContextType, RequireFields<MutationUpdateSimulationArgs, 'id'>>;
 };
@@ -242,17 +249,21 @@ export type SimulationResolvers<ContextType = any, ParentType extends ResolversP
   arrivalMultiplier?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   carConsumption?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   chargingPower?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   numChargePoints?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  results?: Resolver<Array<ResolversTypes['SimulationResult']>, ParentType, ContextType>;
+  results?: Resolver<Maybe<Array<ResolversTypes['SimulationResult']>>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['SimulationStatus'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SimulationResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SimulationResult'] = ResolversParentTypes['SimulationResult']> = {
   chargingEvents?: Resolver<ResolversTypes['ChargingEvents'], ParentType, ContextType>;
   chargingValuesPerHour?: Resolver<Array<ResolversTypes['ChargingValuesPerHour']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   totalEnergyCharged?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -260,6 +271,10 @@ export type SimulationStatusResultResolvers<ContextType = any, ParentType extend
   status?: Resolver<ResolversTypes['SimulationStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
+
+export interface VoidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Void'], any> {
+  name: 'Void';
+}
 
 export type Resolvers<ContextType = any> = {
   ChargingEvents?: ChargingEventsResolvers<ContextType>;
@@ -269,5 +284,6 @@ export type Resolvers<ContextType = any> = {
   Simulation?: SimulationResolvers<ContextType>;
   SimulationResult?: SimulationResultResolvers<ContextType>;
   SimulationStatusResult?: SimulationStatusResultResolvers<ContextType>;
+  Void?: GraphQLScalarType;
 };
 
