@@ -172,7 +172,7 @@ export default function HomePage() {
             name="numChargePoints"
             type="number"
             label="Number of charge points"
-            defaultValue={simulation?.numChargePoints ?? 5}
+            defaultValue={simulation?.numChargePoints ?? 20}
           />
           <Input
             name="arrivalMultiplier"
