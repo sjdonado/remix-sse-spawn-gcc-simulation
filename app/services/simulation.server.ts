@@ -5,7 +5,11 @@ import { and, eq } from 'drizzle-orm';
 
 import { db } from '~/db/database.server';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
-import type { Simulation, SimulationResult } from '~/schemas/simulation';
+import {
+  SerializedSimulationResultSchema,
+  type Simulation,
+  type SimulationResult,
+} from '~/schemas/simulation';
 
 import {
   SimulationStatus,
@@ -149,16 +153,22 @@ export async function startSimulation(simulation: Simulation) {
                     })
                     .returning();
 
-                  sendEvent(
-                    RESULTS_MESSAGE,
-                    lastPercentage,
-                    JSON.stringify(simulationResult)
-                  );
-
                   await tx
                     .update(simulationsTable)
                     .set({ status: SimulationStatus.Success })
                     .where(eq(simulationsTable.id, simulation.id));
+
+                  const serializedSimulationResult =
+                    await SerializedSimulationResultSchema.parseAsync({
+                      ...simulationResult,
+                      createdAt: new Date(simulationResult.createdAt),
+                    });
+
+                  sendEvent(
+                    RESULTS_MESSAGE,
+                    lastPercentage,
+                    JSON.stringify(serializedSimulationResult)
+                  );
                 } catch (error) {
                   logger.error(`[simulation] ${error}`);
                   tx.rollback();
@@ -171,12 +181,6 @@ export async function startSimulation(simulation: Simulation) {
 
           cmdProcess.stderr.on('data', data => {
             reject(data);
-          });
-
-          cmdProcess.on('close', code => {
-            logger.info(
-              `[${startSimulation.name}] (${simulation.id}) python script exited with code ${code}`
-            );
           });
         });
 

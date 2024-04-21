@@ -61,10 +61,6 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "overrides": {
-    "react": "canary",
-    "react-dom": "canary"
-  },
   "trustedDependencies": [
     "better-sqlite3",
     "es5-ext",

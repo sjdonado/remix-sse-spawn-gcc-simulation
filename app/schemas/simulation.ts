@@ -16,7 +16,7 @@ export const SimulationResultSchema = z.object({
     })
   ),
   elapsedTime: z.number(),
-  createdAt: z.string(),
+  createdAt: z.date(),
 });
 
 export const SimulationSchema = z.object({
@@ -60,19 +60,30 @@ export const UpdateSimulationSchema = SimulationSchema.omit({
   updatedAt: true,
 });
 
+export const SerializedSimulationResultSchema = SimulationResultSchema.transform(
+  data => ({
+    ...data,
+    createdAt: data.createdAt.toLocaleString('en-US'),
+  })
+);
+
 export const SerializedSimulationSchema = SimulationSchema.extend({
-  results: z.array(SimulationResultSchema),
+  results: z.array(SimulationResultSchema.extend({ createdAt: z.string() })),
 })
   .transform(data => ({
     ...data,
     createdAt: new Date(data.createdAt).toLocaleString('en-US'),
     updatedAt: new Date(data.updatedAt).toLocaleString('en-US'),
-    results: data.results.map(result => ({
-      ...result,
-      createdAt: new Date(result.createdAt).toLocaleString('en-US'),
-    })),
+    results: data.results.map(data =>
+      SerializedSimulationResultSchema.parse({
+        ...data,
+        createdAt: new Date(data.createdAt),
+      })
+    ),
   }))
   .optional();
 
 export type Simulation = z.infer<typeof SimulationSchema>;
 export type SimulationResult = z.infer<typeof SimulationResultSchema>;
+export type SerializedSimulation = z.infer<typeof SerializedSimulationResultSchema>;
+export type SerializedSimulationResult = z.infer<typeof SerializedSimulationResultSchema>;

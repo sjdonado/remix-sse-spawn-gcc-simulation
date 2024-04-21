@@ -1,12 +1,16 @@
 import { sql, eq } from 'drizzle-orm';
 import { deepParseJson } from 'deep-parse-json';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 
 import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  redirectDocument,
+} from '@remix-run/node';
 
 import { db } from '~/db/database.server';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
@@ -47,7 +51,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     chargingPower
   );
 
-  return redirect(`?id=${simulationId}`);
+  return redirectDocument(`?id=${simulationId}`);
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -110,13 +114,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function HomePage() {
   const [searchParams] = useSearchParams();
-  const simulation = useLoaderData<typeof loader>();
+  const baseSimulation = useLoaderData<typeof loader>();
+
+  const [simulation, setSimulation] = useState(baseSimulation);
 
   const [loading, setLoading] = useState<
     { time: string; percentage: number; message: string } | undefined
   >();
 
-  const startSearchJob = useCallback(async () => {
+  useEffect(() => {
     if (simulation?.status === SimulationStatus.Scheduled) {
       const eventSource = new EventSource(`/simulation/${simulation?.id}/start`);
 
@@ -127,7 +133,9 @@ export default function HomePage() {
 
         if (message == RESULTS_MESSAGE) {
           const newSimulationResult = deepParseJson(payload);
-          Object.assign(simulation, {
+
+          setSimulation({
+            ...simulation,
             status: SimulationStatus.Success,
             results: [newSimulationResult, ...simulation.results],
           });
@@ -146,10 +154,6 @@ export default function HomePage() {
       };
     }
   }, [simulation]);
-
-  useEffect(() => {
-    startSearchJob();
-  }, [startSearchJob]);
 
   const simulationResultId = searchParams.get('result') ?? simulation?.results?.[0]?.id;
   const simulationResult = simulation?.results.find(
