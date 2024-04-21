@@ -58,13 +58,16 @@ export async function startSimulation(simulation: Simulation) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      const sendEvent = (message: string, percentage: number, payload?: string) => {
+      let lastPercentage = 0;
+
+      const sendEvent = (message: string, percentage?: number, payload?: string) => {
         const time = Date.now();
-        controller.enqueue(encodeMessage(message, percentage, time, payload));
+        controller.enqueue(encodeMessage(message, percentage ?? lastPercentage, time, payload));
+        lastPercentage = percentage ?? lastPercentage;
       };
 
       try {
-        sendEvent('Starting simulation...', 0);
+        sendEvent('Starting simulation...');
 
         const pythonCommand = '/usr/bin/python3';
         const pythonScriptPath = path.resolve('./app/bin/simulation.py');
@@ -91,17 +94,8 @@ export async function startSimulation(simulation: Simulation) {
             const [type, object] = line.split('|');
             const parsedObject = JSON.parse(object);
 
-            if (type === 'CHARGING_EVENT') {
-              sendEvent(`Collecting charging event for hour ${parsedObject.time}`, 0.6);
-              chargingEvents.push({
-                time: parsedObject.time,
-                chargingDemand: parsedObject['charging_demand'],
-                chargeTicksRemaining: parsedObject['charge_ticks_remaining'],
-              });
-            }
-
-            if (type === 'CHARGING_VALUES_PER_HOUR') {
-              sendEvent(`Collecting charging values for hour ${parsedObject.time}`, 0.6);
+            if (type === 'PROGRESS_STATUS') {
+              sendEvent(`Simulating charging events for ${parsedObject.time}`, 0.6);
               chargingValuesPerHour.push({
                 time: parsedObject.time,
                 chargepoints: parsedObject['consumption_by_chargepoints'],
@@ -109,8 +103,17 @@ export async function startSimulation(simulation: Simulation) {
               });
             }
 
+            if (type === 'CHARGING_EVENT') {
+              sendEvent(`Collecting charging event for hour ${parsedObject.time}`);
+              chargingEvents.push({
+                time: parsedObject.time,
+                chargingDemand: parsedObject['charging_demand'],
+                chargeTicksRemaining: parsedObject['charge_ticks_remaining'],
+              });
+            }
+
             if (type === 'SUMMARY') {
-              sendEvent('Collecting summary', 0.8);
+              sendEvent('Collecting summary');
 
               await db.transaction(async tx => {
                 try {
@@ -119,12 +122,11 @@ export async function startSimulation(simulation: Simulation) {
                     .values({
                       simulationId: simulation.id,
                       totalEnergyConsumed: parsedObject['total_energy_consumed'],
-                      chargingValuesPerHour: chargingValuesPerHour,
                       chargingEvents: chargingEvents,
                     })
                     .returning();
 
-                  sendEvent(RESULTS_MESSAGE, 0.9, JSON.stringify(results));
+                  sendEvent(RESULTS_MESSAGE, lastPercentage, JSON.stringify(results));
 
                   await tx
                     .update(simulationsTable)
@@ -151,7 +153,7 @@ export async function startSimulation(simulation: Simulation) {
           });
         });
 
-        sendEvent(DONE_JOB_MESSAGE, 1);
+        sendEvent(DONE_JOB_MESSAGE);
         logger.info(`[${startSimulation.name}] (${simulation.id}) finished`);
       } catch (error) {
         logger.error(`[${startSimulation.name}] (${simulation.id}) failed`, error);
