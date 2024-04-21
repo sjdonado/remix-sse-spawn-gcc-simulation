@@ -66,6 +66,10 @@ export const SerializedSimulationSchema = SimulationSchema.extend({
     ...data,
     createdAt: new Date(data.createdAt).toLocaleString('en-US'),
     updatedAt: new Date(data.updatedAt).toLocaleString('en-US'),
+    results: data.results.map(result => ({
+      ...result,
+      createdAt: new Date(result.createdAt).toLocaleString('en-US'),
+    })),
   }))
   .optional();
 

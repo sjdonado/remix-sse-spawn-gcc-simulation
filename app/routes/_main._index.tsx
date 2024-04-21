@@ -47,16 +47,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     chargingPower
   );
 
-  return redirect(`/home?id=${simulationId}`);
+  return redirect(`?id=${simulationId}`);
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const simulationId = url.searchParams.get('id');
-
-  if (!simulationId) {
-    return null;
-  }
 
   const sqSimulationResults = db
     .select({
@@ -99,6 +95,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     .where(eq(simulationsTable.id, simulationId as string))
     .limit(1);
 
+  if (!simulation) {
+    return null;
+  }
+
   const serializedSimulation = await SerializedSimulationSchema.parseAsync({
     ...simulation,
     results: deepParseJson(simulation.results),
@@ -116,7 +116,7 @@ export default function HomePage() {
   >();
 
   const startSearchJob = useCallback(async () => {
-    if (simulation && simulation?.status === SimulationStatus.Scheduled) {
+    if (simulation?.status === SimulationStatus.Scheduled) {
       const eventSource = new EventSource(`/simulation/${simulation?.id}/start`);
 
       eventSource.onmessage = event => {
@@ -148,12 +148,14 @@ export default function HomePage() {
 
   useEffect(() => {
     startSearchJob();
-  }, [startSearchJob]);
+  }, []);
 
   const simulationResultId = searchParams.get('result') ?? simulation?.results?.[0]?.id;
   const simulationResult = simulation?.results.find(
     result => result.id === simulationResultId
   );
+
+  console.log('rendering', simulation);
 
   return (
     <div className="flex w-full flex-col gap-12 pb-8">
@@ -192,12 +194,13 @@ export default function HomePage() {
           Submit
         </button>
       </ValidatedForm>
-      {loading && <ProgressBar progress={loading.percentage} message={loading.message} />}
+      {simulation?.status === SimulationStatus.Running && loading && (
+        <ProgressBar progress={loading.percentage} message={loading.message} />
+      )}
       {simulation?.status === SimulationStatus.Success && simulationResult && (
         <div className="flex flex-col gap-8">
           <h2 className="text-xl font-bold">
-            Simulation {simulationResult.id.split('-')[0]} (
-            {new Date(simulationResult.createdAt).toLocaleString('en-US')})
+            Simulation {simulationResult.id.split('-')[0]} ({simulationResult.createdAt})
           </h2>
           <ChargingSummaryTable
             totalEnergyConsumed={simulationResult.totalEnergyConsumed}
@@ -222,7 +225,7 @@ export default function HomePage() {
                   className="flex justify-between border-b pb-2"
                 >
                   <p className="underline">Simulation {result.id.split('-')[0]} </p>{' '}
-                  <span>{new Date(result.createdAt).toLocaleString('en-US')}</span>
+                  <span>{simulationResult?.createdAt}</span>
                 </Link>
               ))}
             </div>

@@ -1,6 +1,23 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react';
+import {
+  Links,
+  Meta,
+  MetaFunction,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from '@remix-run/react';
 
 import './index.css';
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: 'EV Charging Simulator' },
+    {
+      name: 'description',
+      content: 'Optimizing Energy Consumption for Your Parking Lot. (Educational demo)',
+    },
+  ];
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
