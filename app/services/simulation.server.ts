@@ -1,8 +1,7 @@
-import path from 'path';
 import { spawn } from 'child_process';
 import readline from 'readline';
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { db } from '~/db/database.server';
 import { simulationsResultsTable, simulationsTable } from '~/db/tables.server';
@@ -13,6 +12,7 @@ import {
   DONE_JOB_MESSAGE,
   RESULTS_MESSAGE,
 } from '~/constants/simulation';
+import { SCRIPT_CMD } from '~/constants/env.server';
 import { logger } from '~/utils/logger.server';
 
 export const scheduleSimulation = async (
@@ -92,9 +92,7 @@ export async function startSimulation(simulation: Simulation) {
       try {
         sendEvent('Starting simulation...');
 
-        const pythonCommand = '/usr/bin/python3';
-        const pythonScriptPath = path.resolve('./app/bin/simulation.py');
-        const pythonArgs = [
+        const cmdArgs = [
           '--num_chargepoints',
           simulation.numChargePoints.toString(),
           '--charging_power',
@@ -105,12 +103,12 @@ export async function startSimulation(simulation: Simulation) {
           simulation.arrivalMultiplier.toString(),
         ];
 
-        const pythonProcess = spawn(pythonCommand, [pythonScriptPath, ...pythonArgs]);
+        const cmdProcess = spawn(SCRIPT_CMD, cmdArgs);
 
         await new Promise((resolve, reject) => {
           const chargingEvents: SimulationResult['chargingEvents'] = [];
 
-          const rl = readline.createInterface({ input: pythonProcess.stdout });
+          const rl = readline.createInterface({ input: cmdProcess.stdout });
 
           rl.on('line', async line => {
             const [type, object] = line.split('|');
@@ -137,7 +135,7 @@ export async function startSimulation(simulation: Simulation) {
 
               await db.transaction(async tx => {
                 try {
-                  const results = await tx
+                  const [simulationResult] = await tx
                     .insert(simulationsResultsTable)
                     .values({
                       simulationId: simulation.id,
@@ -150,7 +148,11 @@ export async function startSimulation(simulation: Simulation) {
                     })
                     .returning();
 
-                  sendEvent(RESULTS_MESSAGE, lastPercentage, JSON.stringify(results));
+                  sendEvent(
+                    RESULTS_MESSAGE,
+                    lastPercentage,
+                    JSON.stringify(simulationResult)
+                  );
 
                   await tx
                     .update(simulationsTable)
@@ -166,11 +168,11 @@ export async function startSimulation(simulation: Simulation) {
             }
           });
 
-          pythonProcess.stderr.on('data', data => {
+          cmdProcess.stderr.on('data', data => {
             reject(data);
           });
 
-          pythonProcess.on('close', code => {
+          cmdProcess.on('close', code => {
             logger.info(
               `[${startSimulation.name}] (${simulation.id}) python script exited with code ${code}`
             );

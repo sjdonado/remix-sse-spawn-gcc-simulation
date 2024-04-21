@@ -213,7 +213,6 @@ export default function HomePage() {
       {simulation?.status === SimulationStatus.Success &&
         simulation.results.length > 1 && (
           <div className="flex flex-col gap-8 mt-8">
-            <hr />
             <h2 className="text-xl font-bold">Previous results</h2>
             <div className="flex flex-col gap-2">
               {simulation.results.map(result => (
