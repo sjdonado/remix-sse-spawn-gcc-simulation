@@ -17,8 +17,9 @@ ADD . .
 
 RUN cd ./app/bin && python -m nuitka --standalone --onefile simulation.py
 
-RUN bun run build
+# RUN bun run build # tempfix: hydratation issue remix-serve (partially solved with react canary)
 
 EXPOSE 3000/tcp
 
-CMD ["bun", "run", "start"]
+# CMD ["bun", "run", "start"]
+CMD ["bun", "run", "dev"]
