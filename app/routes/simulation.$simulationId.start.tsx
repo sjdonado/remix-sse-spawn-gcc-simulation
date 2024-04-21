@@ -6,7 +6,7 @@ import { LoaderFunctionArgs } from '@remix-run/node';
 import { db } from '~/db/database.server';
 import { simulationsTable } from '~/db/tables.server';
 
-import { startSimulation } from '~/services/simulation.server';
+import { startSimulation } from '~/jobs/simulation.server';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   invariant(params.simulationId, 'Missing simulationId param');

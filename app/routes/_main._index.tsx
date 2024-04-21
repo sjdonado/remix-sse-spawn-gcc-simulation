@@ -23,7 +23,7 @@ import {
   SimulationStatus,
 } from '~/constants/simulation';
 
-import { scheduleSimulation } from '~/services/simulation.server';
+import { scheduleSimulation } from '~/jobs/simulation.server';
 
 import { Input } from '~/components/Input';
 import ProgressBar from '~/components/ProgressBar';
