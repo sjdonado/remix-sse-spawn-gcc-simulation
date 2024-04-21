@@ -1,7 +1,32 @@
+#! /usr/bin/python3
+
 import argparse
+import calendar
 import datetime
 import json
 import random
+
+
+def get_dst_start_end():
+    current_date = datetime.datetime.now()
+    year = current_date.year
+
+    march_calendar = calendar.monthcalendar(year, 3)
+    second_sunday = (
+        march_calendar[1][calendar.SUNDAY]
+        if march_calendar[0][calendar.SUNDAY]
+        else march_calendar[2][calendar.SUNDAY]
+    )
+    dst_start = datetime.datetime(year, 3, second_sunday)
+
+    november_calendar = calendar.monthcalendar(year, 11)
+    first_sunday = november_calendar[0][calendar.SUNDAY]
+    dst_end = datetime.datetime(year, 11, first_sunday)
+
+    year_start = datetime.datetime(year, 1, 1)
+
+    return year_start, dst_start, dst_end
+
 
 arrival_probabilities = [
     0.0094,
@@ -42,11 +67,9 @@ charging_demand_probabilities = [
     (0.0294, 300),
 ]
 
-MINUTES_PER_TICK = 15
 
-YEAR_START = datetime.datetime(2024, 1, 1)
-DST_START = datetime.datetime(2024, 3, 10)
-DST_END = datetime.datetime(2024, 11, 3)
+MINUTES_PER_TICK = 15
+YEAR_START, DST_START, DST_END = get_dst_start_end()
 
 
 def simulate_chargepoint_with_DTS(
