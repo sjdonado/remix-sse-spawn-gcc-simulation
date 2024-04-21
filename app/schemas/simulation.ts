@@ -4,13 +4,9 @@ import { ALL_SIMULATION_STATUSES } from '~/constants/simulation';
 
 export const SimulationResultSchema = z.object({
   totalEnergyConsumed: z.number(),
-  chargingValuesPerHour: z.array(
-    z.object({
-      time: z.string(),
-      chargepoints: z.array(z.number()),
-      total: z.number(),
-    })
-  ),
+  maxPowerDemand: z.number(),
+  theoreticalMaxPowerDemand: z.number(),
+  concurrencyFactor: z.number(),
   chargingEvents: z.array(
     z.object({
       time: z.string(),

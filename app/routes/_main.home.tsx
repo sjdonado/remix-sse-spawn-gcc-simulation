@@ -65,7 +65,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         json_group_array(
           json_object(
             'totalEnergyConsumed', ${simulationsResultsTable.totalEnergyConsumed},
-            'chargingValuesPerHour', ${simulationsResultsTable.chargingValuesPerHour},
+            'maxPowerDemand', ${simulationsResultsTable.maxPowerDemand},
+            'theoreticalMaxPowerDemand', ${simulationsResultsTable.theoreticalMaxPowerDemand},
+            'concurrencyFactor', ${simulationsResultsTable.concurrencyFactor},
             'chargingEvents', ${simulationsResultsTable.chargingEvents},
             'createdAt', ${simulationsResultsTable.createdAt},
             'updatedAt', ${simulationsResultsTable.updatedAt}
@@ -187,12 +189,9 @@ export default function HomePage() {
           <ChargingSummaryTable
             totalEnergyConsumed={simulation.results[0].totalEnergyConsumed}
             chargingEvents={simulation.results[0].chargingEvents}
-          />
-          <ChargingPointsGraph
-            data={simulation.results[0].chargingValuesPerHour.slice(0, 24)}
-          />
-          <CharingValuesDayGraph
-            data={simulation.results[0].chargingValuesPerHour.slice(0, 24)}
+            maxPowerDemand={simulation.results[0].maxPowerDemand}
+            theoreticalMaxPowerDemand={simulation.results[0].theoreticalMaxPowerDemand}
+            concurrencyFactor={simulation.results[0].concurrencyFactor}
           />
         </div>
       )}

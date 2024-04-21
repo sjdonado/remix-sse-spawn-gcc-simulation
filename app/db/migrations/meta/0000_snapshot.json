@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "13cea170-860b-47c9-a975-5e4a1ea031b9",
+  "id": "75ddf626-5e54-4949-9d1e-cbd3af946563",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "simulations_results": {
@@ -28,11 +28,25 @@
           "notNull": true,
           "autoincrement": false
         },
-        "chargingValues": {
-          "name": "chargingValues",
-          "type": "text",
+        "max_power_demand": {
+          "name": "max_power_demand",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "theoretical_max_power_demand": {
+          "name": "theoretical_max_power_demand",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "concurrency_factor": {
+          "name": "concurrency_factor",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "chargingEvents": {

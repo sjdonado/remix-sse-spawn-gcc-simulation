@@ -50,6 +50,7 @@ DST_END = datetime.datetime(2024, 11, 3)
 
 
 def simulate_chargepoint_with_DTS(
+    chargepoint,
     ticks_per_year,
     ticks_per_hour,
     num_chargepoints,
@@ -58,11 +59,8 @@ def simulate_chargepoint_with_DTS(
     power_demand_per_tick,
     charging_power,
     kwh_per_100km,
-    charging_events,
     arrival_multiplier,
 ):
-    chargepoint_consumption = [[0] * num_chargepoints for _ in range(ticks_per_year)]
-
     for tick in range(ticks_per_year):
         dts_tick = tick
         date = YEAR_START + datetime.timedelta(minutes=tick * MINUTES_PER_TICK)
@@ -73,7 +71,11 @@ def simulate_chargepoint_with_DTS(
         print(
             "PROGRESS_STATUS|%s"
             % json.dumps(
-                {"total": ticks_per_year, "current": tick, "time": date.isoformat()}
+                {
+                    "time": date.isoformat(),
+                    "current": (chargepoint * ticks_per_year) + tick,
+                    "total": ticks_per_year * num_chargepoints,
+                }
             )
         )
 
@@ -97,6 +99,7 @@ def simulate_chargepoint_with_DTS(
                         * 60
                         / MINUTES_PER_TICK
                     )
+
                     print(
                         "CHARGING_EVENT|%s"
                         % json.dumps(
@@ -107,6 +110,7 @@ def simulate_chargepoint_with_DTS(
                             }
                         )
                     )
+
                     for i in range(
                         tick, min(tick + charge_ticks_remaining, ticks_per_year)
                     ):
@@ -115,9 +119,6 @@ def simulate_chargepoint_with_DTS(
                             charging_power * MINUTES_PER_TICK / 60
                         )
                         power_demand_per_tick[i] += charging_power
-                        chargepoint_consumption[i][0] += (
-                            charging_power * MINUTES_PER_TICK / 60
-                        )
         else:
             chargepoint_states[tick] = False
 
@@ -130,10 +131,10 @@ def run(num_chargepoints, charging_power, kwh_per_100km, arrival_multiplier):
     chargepoint_states = {tick: False for tick in range(ticks_per_year)}
     total_energy_per_tick = {tick: 0 for tick in range(ticks_per_year)}
     power_demand_per_tick = {tick: 0 for tick in range(ticks_per_year)}
-    charging_events = []
 
-    for _ in range(num_chargepoints):
+    for chargepoint in range(num_chargepoints):
         simulate_chargepoint_with_DTS(
+            chargepoint,
             ticks_per_year,
             ticks_per_hour,
             num_chargepoints,
@@ -142,7 +143,6 @@ def run(num_chargepoints, charging_power, kwh_per_100km, arrival_multiplier):
             power_demand_per_tick,
             charging_power,
             kwh_per_100km,
-            charging_events,
             arrival_multiplier,
         )
 

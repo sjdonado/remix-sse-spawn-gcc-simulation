@@ -42,19 +42,14 @@ const seedSimulationsResults = async (db: BetterSQLite3Database) => {
     const jobResults = {
       totalEnergyConsumed:
         chargingEvents * simulation.arrivalMultiplier * simulation.chargingPower,
-      chargingValuesPerHour: Array.from({ length: 24 }, (_, i) => ({
-        hour: `${i}:00`,
+      chargingEvents: Array.from({ length: 24 }, (_, i) => ({
+        time: `${i}:00`,
         chargepoints: Array.from({ length: simulation.numChargePoints }, () =>
           Number((Math.random() * simulation.carConsumption).toFixed(2))
         ),
-        total: Math.random() * simulation.arrivalMultiplier,
+        chargingDemand: Math.random() * simulation.arrivalMultiplier,
+        chargeTicksRemaining: chargingEvents,
       })),
-      chargingEvents: {
-        year: chargingEvents * 24 * 365,
-        month: Array(chargingEvents * 24 * 30).fill(1),
-        week: Array(chargingEvents * 24 * 7).fill(1),
-        day: Array(chargingEvents * 24).fill(1),
-      },
     };
 
     data.push({

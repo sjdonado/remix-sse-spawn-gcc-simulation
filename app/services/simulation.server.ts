@@ -61,8 +61,9 @@ export async function startSimulation(simulation: Simulation) {
       let lastPercentage = 0;
 
       const sendEvent = (message: string, percentage?: number, payload?: string) => {
-        const time = Date.now();
-        controller.enqueue(encodeMessage(message, percentage ?? lastPercentage, time, payload));
+        controller.enqueue(
+          encodeMessage(message, percentage ?? lastPercentage, Date.now(), payload)
+        );
         lastPercentage = percentage ?? lastPercentage;
       };
 
@@ -86,7 +87,6 @@ export async function startSimulation(simulation: Simulation) {
 
         await new Promise((resolve, reject) => {
           const chargingEvents: SimulationResult['chargingEvents'] = [];
-          const chargingValuesPerHour: SimulationResult['chargingValuesPerHour'] = [];
 
           const rl = readline.createInterface({ input: pythonProcess.stdout });
 
@@ -95,12 +95,10 @@ export async function startSimulation(simulation: Simulation) {
             const parsedObject = JSON.parse(object);
 
             if (type === 'PROGRESS_STATUS') {
-              sendEvent(`Simulating charging events for ${parsedObject.time}`, 0.6);
-              chargingValuesPerHour.push({
-                time: parsedObject.time,
-                chargepoints: parsedObject['consumption_by_chargepoints'],
-                total: parsedObject['total'],
-              });
+              sendEvent(
+                `Simulating charging events for ${parsedObject.time}`,
+                parsedObject.current / parsedObject.total
+              );
             }
 
             if (type === 'CHARGING_EVENT') {
@@ -122,6 +120,10 @@ export async function startSimulation(simulation: Simulation) {
                     .values({
                       simulationId: simulation.id,
                       totalEnergyConsumed: parsedObject['total_energy_consumed'],
+                      maxPowerDemand: parsedObject['max_power_demand'],
+                      theoreticalMaxPowerDemand:
+                        parsedObject['theoretical_max_power_demand'],
+                      concurrencyFactor: parsedObject['concurrency_factor'],
                       chargingEvents: chargingEvents,
                     })
                     .returning();

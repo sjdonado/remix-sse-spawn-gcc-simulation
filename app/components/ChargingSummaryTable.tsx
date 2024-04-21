@@ -3,12 +3,18 @@ import { SimulationResult } from '~/schemas/simulation';
 const ChargingSummaryTable = ({
   totalEnergyConsumed,
   chargingEvents,
+  maxPowerDemand,
+  theoreticalMaxPowerDemand,
+  concurrencyFactor,
 }: {
   totalEnergyConsumed: SimulationResult['totalEnergyConsumed'];
   chargingEvents: SimulationResult['chargingEvents'];
+  maxPowerDemand: SimulationResult['maxPowerDemand'];
+  theoreticalMaxPowerDemand: SimulationResult['theoreticalMaxPowerDemand'];
+  concurrencyFactor: SimulationResult['concurrencyFactor'];
 }) => (
   <div className="custom-table">
-    <table className="">
+    <table>
       <thead>
         <tr>
           <th scope="col">Metric</th>
@@ -21,8 +27,20 @@ const ChargingSummaryTable = ({
           <td>{totalEnergyConsumed} kWh</td>
         </tr>
         <tr>
-          <td>Charging Events per Day</td>
+          <td>Total Charging Events</td>
           <td>{chargingEvents.length}</td>
+        </tr>
+        <tr>
+          <td>Maximum Power Demand</td>
+          <td>{maxPowerDemand}kW</td>
+        </tr>
+        <tr>
+          <td>Theoretical Maximum Power Demand</td>
+          <td>{theoreticalMaxPowerDemand}kW</td>
+        </tr>
+        <tr>
+          <td>Concurrency Factor</td>
+          <td>{concurrencyFactor * 100}%</td>
         </tr>
       </tbody>
     </table>
