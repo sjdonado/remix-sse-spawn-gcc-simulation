@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import readline from 'readline';
 
 import { and, eq } from 'drizzle-orm';
@@ -82,6 +82,8 @@ export async function startSimulation(simulation: Simulation) {
     return encodeMessage(DONE_JOB_MESSAGE, 1);
   }
 
+  let cmdProcess: ChildProcessWithoutNullStreams | null = null;
+
   const stream = new ReadableStream({
     async start(controller) {
       let lastPercentage = 0;
@@ -107,12 +109,12 @@ export async function startSimulation(simulation: Simulation) {
           simulation.arrivalMultiplier.toString(),
         ];
 
-        const cmdProcess = spawn(SCRIPT_CMD, cmdArgs);
+        cmdProcess = spawn(SCRIPT_CMD, cmdArgs);
 
         await new Promise((resolve, reject) => {
           const chargingEvents: SimulationResult['chargingEvents'] = [];
 
-          const rl = readline.createInterface({ input: cmdProcess.stdout });
+          const rl = readline.createInterface({ input: cmdProcess!.stdout });
 
           rl.on('line', async line => {
             const [type, object] = line.split('|');
@@ -179,7 +181,7 @@ export async function startSimulation(simulation: Simulation) {
             }
           });
 
-          cmdProcess.stderr.on('data', data => {
+          cmdProcess!.stderr.on('data', data => {
             reject(data);
           });
         });
@@ -190,9 +192,17 @@ export async function startSimulation(simulation: Simulation) {
         logger.error(`[${startSimulation.name}] (${simulation.id}) failed`, error);
 
         throw error;
+      } finally {
+        controller.close();
       }
-
-      controller.close();
+    },
+    cancel() {
+      if (cmdProcess) {
+        cmdProcess.kill();
+        logger.info(
+          `[${startSimulation.name}] (${simulation.id}) child process terminated - stream canceled`
+        );
+      }
     },
   });
 
