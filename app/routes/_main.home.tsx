@@ -22,10 +22,10 @@ import {
 import { scheduleSimulation } from '~/services/simulation.server';
 
 import { Input } from '~/components/Input';
-import CharingValuesDayGraph from '../components/CharingValuesDayGraph';
-import ChargingPointsGraph from '../components/ChargingPointsGraph';
-import ChargingSummaryTable from '../components/ChargingSummaryTable';
 import ProgressBar from '~/components/ProgressBar';
+import ChargingSummaryTable from '../components/ChargingSummaryTable';
+import ChargingDemandPerHour from '~/components/ChargingDemandPerHour';
+import ChargingEventsPerDay from '~/components/ChargingEventsPerDay';
 
 const validator = withZod(CreateSimulationSchema);
 
@@ -193,6 +193,8 @@ export default function HomePage() {
             theoreticalMaxPowerDemand={simulation.results[0].theoreticalMaxPowerDemand}
             concurrencyFactor={simulation.results[0].concurrencyFactor}
           />
+          <ChargingDemandPerHour data={simulation.results[0].chargingEvents} />
+          <ChargingEventsPerDay data={simulation.results[0].chargingEvents} />
         </div>
       )}
     </div>
