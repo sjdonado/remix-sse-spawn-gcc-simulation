@@ -66,6 +66,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             'theoreticalMaxPowerDemand', ${simulationsResultsTable.theoreticalMaxPowerDemand},
             'concurrencyFactor', ${simulationsResultsTable.concurrencyFactor},
             'chargingEvents', ${simulationsResultsTable.chargingEvents},
+            'elapsedTime', ${simulationsResultsTable.elapsedTime},
             'createdAt', ${simulationsResultsTable.createdAt}
           )
           ORDER BY ${simulationsResultsTable.createdAt} DESC
@@ -148,14 +149,12 @@ export default function HomePage() {
 
   useEffect(() => {
     startSearchJob();
-  }, []);
+  }, [startSearchJob]);
 
   const simulationResultId = searchParams.get('result') ?? simulation?.results?.[0]?.id;
   const simulationResult = simulation?.results.find(
     result => result.id === simulationResultId
   );
-
-  console.log('rendering', simulation);
 
   return (
     <div className="flex w-full flex-col gap-12 pb-8">
@@ -194,14 +193,18 @@ export default function HomePage() {
           Submit
         </button>
       </ValidatedForm>
-      {simulation?.status === SimulationStatus.Running && loading && (
-        <ProgressBar progress={loading.percentage} message={loading.message} />
-      )}
+      {loading && <ProgressBar progress={loading.percentage} message={loading.message} />}
       {simulation?.status === SimulationStatus.Success && simulationResult && (
         <div className="flex flex-col gap-8">
-          <h2 className="text-xl font-bold">
-            Simulation {simulationResult.id.split('-')[0]} ({simulationResult.createdAt})
-          </h2>
+          <div className="flex flex-col">
+            <h2 className="text-xl font-bold">
+              Simulation {simulationResult.id.split('-')[0]} ({simulationResult.createdAt}
+              )
+            </h2>
+            <p className="text-slate-500">
+              Elapsed time: {simulationResult.elapsedTime.toFixed(2)} seconds
+            </p>
+          </div>
           <ChargingSummaryTable
             totalEnergyConsumed={simulationResult.totalEnergyConsumed}
             chargingEvents={simulationResult.chargingEvents}

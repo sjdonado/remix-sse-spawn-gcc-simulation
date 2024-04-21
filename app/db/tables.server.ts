@@ -42,6 +42,7 @@ export const simulationsResultsTable = sqliteTable('simulations_results', {
   chargingEvents: text('chargingEvents', { mode: 'json' })
     .$type<SimulationResult['chargingEvents']>()
     .notNull(),
+  elapsedTime: integer('elapsed_time').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

@@ -1,29 +1,21 @@
-FROM oven/bun:debian
+FROM python:3.11-bookworm
 
 WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y patchelf curl build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+RUN apt-get update && apt-get install -y patchelf curl 
 
-RUN curl -O https://www.python.org/ftp/python/3.11.3/Python-3.11.3.tar.xz && \
-    tar -xf Python-3.11.3.tar.xz && \
-    cd Python-3.11.3 && \
-    ./configure --enable-optimizations && \
-    make -j $(nproc) && \
-    make altinstall && \
-    cd .. && \
-    rm -rf Python-3.11.3 Python-3.11.3.tar.xz
+RUN curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
 
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN python3.11 -m pip install nuitka
+RUN pip install nuitka
 
 COPY package.json bun.lockb .
 RUN bun install
 
 ADD . .
 
-RUN cd ./app/bin && python3.11 -m nuitka --standalone --onefile simulation.py
+RUN cd ./app/bin && python -m nuitka --standalone --onefile simulation.py
 
 RUN bun run build
 

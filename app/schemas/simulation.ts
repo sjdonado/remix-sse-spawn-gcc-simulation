@@ -15,6 +15,7 @@ export const SimulationResultSchema = z.object({
       chargeTicksRemaining: z.number(),
     })
   ),
+  elapsedTime: z.number(),
   createdAt: z.string(),
 });
 

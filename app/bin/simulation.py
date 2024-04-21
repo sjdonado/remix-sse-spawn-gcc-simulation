@@ -147,6 +147,8 @@ def simulate_chargepoint_with_DTS(
 
 
 def run(num_chargepoints, charging_power, kwh_per_100km, arrival_multiplier):
+    start_time = datetime.datetime.now().timestamp()
+
     ticks_per_hour = 60 // MINUTES_PER_TICK
     ticks_per_day = 24 * ticks_per_hour
     ticks_per_year = 365 * ticks_per_day
@@ -181,6 +183,7 @@ def run(num_chargepoints, charging_power, kwh_per_100km, arrival_multiplier):
                 "max_power_demand": max_power_demand,
                 "theoretical_max_power_demand": theoretical_max_power_demand,
                 "concurrency_factor": max_power_demand / theoretical_max_power_demand,
+                "elapsed_time": datetime.datetime.now().timestamp() - start_time,
             }
         )
     )

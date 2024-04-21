@@ -145,6 +145,7 @@ export async function startSimulation(simulation: Simulation) {
                         parsedObject['theoretical_max_power_demand'],
                       concurrencyFactor: parsedObject['concurrency_factor'],
                       chargingEvents: chargingEvents,
+                      elapsedTime: parsedObject['elapsed_time'],
                     })
                     .returning();
 
