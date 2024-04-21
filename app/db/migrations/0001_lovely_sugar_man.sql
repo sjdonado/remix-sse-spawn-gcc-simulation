@@ -1,0 +1,1 @@
+ALTER TABLE simulations_results ADD `elapsed_time` integer NOT NULL;
