@@ -36,7 +36,7 @@ export const CreateSimulationSchema = z.object({
     z
       .number()
       .min(1, { message: 'Minimum number of charge points is 1' })
-      .max(200, 'Maximum number of charge points is 200')
+      .max(100, 'Maximum number of charge points is 100')
   ),
   arrivalMultiplier: z.preprocess(
     val => Number(val),

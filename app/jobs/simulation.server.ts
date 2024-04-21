@@ -98,6 +98,11 @@ export async function startSimulation(simulation: Simulation) {
       try {
         sendEvent('Starting simulation...');
 
+        await db
+          .update(simulationsTable)
+          .set({ status: SimulationStatus.Running })
+          .where(eq(simulationsTable.id, simulation.id));
+
         const cmdArgs = [
           '--num_chargepoints',
           simulation.numChargePoints.toString(),
