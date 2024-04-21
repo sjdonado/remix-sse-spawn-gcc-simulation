@@ -17,7 +17,8 @@ ADD . .
 
 RUN cd ./app/bin && python -m nuitka --standalone --onefile simulation.py
 
-# RUN bun run build # tempfix: hydratation issue remix-serve (partially solved with react canary)
+# tempfix: hydratation issue remix-serve (https://github.com/remix-run/remix/issues/9069)
+# RUN bun run build 
 
 EXPOSE 3000/tcp
 

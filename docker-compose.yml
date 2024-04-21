@@ -2,7 +2,7 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: ./db.sqlite
+      DATABASE_URL: ./sqlite/db.sqlite
       SCRIPT_CMD: ./app/bin/simulation.bin
     ports:
       - 3000:3000
