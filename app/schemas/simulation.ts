@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ALL_SIMULATION_STATUSES } from '~/constants/simulation';
 
 export const SimulationResultSchema = z.object({
+  id: z.string(),
   totalEnergyConsumed: z.number(),
   maxPowerDemand: z.number(),
   theoreticalMaxPowerDemand: z.number(),
@@ -14,6 +15,7 @@ export const SimulationResultSchema = z.object({
       chargeTicksRemaining: z.number(),
     })
   ),
+  createdAt: z.string(),
 });
 
 export const SimulationSchema = z.object({
@@ -30,7 +32,10 @@ export const SimulationSchema = z.object({
 export const CreateSimulationSchema = z.object({
   numChargePoints: z.preprocess(
     val => Number(val),
-    z.number().min(1, { message: 'Minimum number of charge points is 1' })
+    z
+      .number()
+      .min(1, { message: 'Minimum number of charge points is 1' })
+      .max(500, 'Maximum number of charge points is 500')
   ),
   arrivalMultiplier: z.preprocess(
     val => Number(val),

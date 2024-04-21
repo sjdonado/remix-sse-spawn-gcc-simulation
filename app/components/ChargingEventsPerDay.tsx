@@ -26,7 +26,7 @@ const ChargingEventsPerDay = ({ data }: { data: SimulationResult['chargingEvents
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold">Number of Charging Events per Day</h2>
+      <h2 className="text-lg font-medium">Number of Charging Events per Day</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <BarChart data={chartData}>

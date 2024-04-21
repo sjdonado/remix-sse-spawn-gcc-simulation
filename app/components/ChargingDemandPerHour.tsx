@@ -45,9 +45,9 @@ const ChargingDemandPerHour = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold">
+      <h3 className="text-lg font-medium">
         Day with most charging events ({dayWithMostEvents[0]}) - Charging demand per hour
-      </h2>
+      </h3>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <LineChart width={500} height={300} data={chartData}>

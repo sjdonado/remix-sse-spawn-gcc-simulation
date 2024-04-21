@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { withZod } from '@remix-validated-form/with-zod';
 import { ValidatedForm, validationError } from 'remix-validated-form';
 
-import { useLoaderData } from '@remix-run/react';
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 
 import { db } from '~/db/database.server';
@@ -64,14 +64,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       results: sql`
         json_group_array(
           json_object(
+            'id', ${simulationsResultsTable.id},
             'totalEnergyConsumed', ${simulationsResultsTable.totalEnergyConsumed},
             'maxPowerDemand', ${simulationsResultsTable.maxPowerDemand},
             'theoreticalMaxPowerDemand', ${simulationsResultsTable.theoreticalMaxPowerDemand},
             'concurrencyFactor', ${simulationsResultsTable.concurrencyFactor},
             'chargingEvents', ${simulationsResultsTable.chargingEvents},
-            'createdAt', ${simulationsResultsTable.createdAt},
-            'updatedAt', ${simulationsResultsTable.updatedAt}
+            'createdAt', ${simulationsResultsTable.createdAt}
           )
+          ORDER BY ${simulationsResultsTable.createdAt} DESC
         ) `.as('results'),
     })
     .from(simulationsResultsTable)
@@ -107,6 +108,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function HomePage() {
+  const [searchParams] = useSearchParams();
   const simulation = useLoaderData<typeof loader>();
 
   const [loading, setLoading] = useState<
@@ -123,7 +125,11 @@ export default function HomePage() {
         setLoading({ time, percentage: Number(percentage), message });
 
         if (message == RESULTS_MESSAGE) {
-          simulation.results = deepParseJson(payload);
+          const newSimulationResult = deepParseJson(payload);
+          Object.assign(simulation, {
+            status: SimulationStatus.Success,
+            results: [newSimulationResult, ...simulation.results],
+          });
         }
 
         if (message === DONE_JOB_MESSAGE) {
@@ -144,8 +150,13 @@ export default function HomePage() {
     startSearchJob();
   }, [startSearchJob]);
 
+  const simulationResultId = searchParams.get('result') ?? simulation?.results?.[0]?.id;
+  const simulationResult = simulation?.results.find(
+    result => result.id === simulationResultId
+  );
+
   return (
-    <div className="flex w-full flex-col gap-12">
+    <div className="flex w-full flex-col gap-12 pb-8">
       <ValidatedForm
         validator={validator}
         method="post"
@@ -162,8 +173,6 @@ export default function HomePage() {
             name="arrivalMultiplier"
             type="number"
             label="Arrival Multiplier"
-            min={20}
-            max={200}
             defaultValue={simulation?.arrivalMultiplier ?? 100}
           />
           <Input
@@ -184,19 +193,42 @@ export default function HomePage() {
         </button>
       </ValidatedForm>
       {loading && <ProgressBar progress={loading.percentage} message={loading.message} />}
-      {simulation?.results && simulation.results.length > 0 && (
+      {simulation?.status === SimulationStatus.Success && simulationResult && (
         <div className="flex flex-col gap-8">
+          <h2 className="text-xl font-bold">
+            Simulation {simulationResult.id.split('-')[0]} (
+            {new Date(simulationResult.createdAt).toLocaleString('en-US')})
+          </h2>
           <ChargingSummaryTable
-            totalEnergyConsumed={simulation.results[0].totalEnergyConsumed}
-            chargingEvents={simulation.results[0].chargingEvents}
-            maxPowerDemand={simulation.results[0].maxPowerDemand}
-            theoreticalMaxPowerDemand={simulation.results[0].theoreticalMaxPowerDemand}
-            concurrencyFactor={simulation.results[0].concurrencyFactor}
+            totalEnergyConsumed={simulationResult.totalEnergyConsumed}
+            chargingEvents={simulationResult.chargingEvents}
+            maxPowerDemand={simulationResult.maxPowerDemand}
+            theoreticalMaxPowerDemand={simulationResult.theoreticalMaxPowerDemand}
+            concurrencyFactor={simulationResult.concurrencyFactor}
           />
-          <ChargingDemandPerHour data={simulation.results[0].chargingEvents} />
-          <ChargingEventsPerDay data={simulation.results[0].chargingEvents} />
+          <ChargingDemandPerHour data={simulationResult.chargingEvents} />
+          <ChargingEventsPerDay data={simulationResult.chargingEvents} />
         </div>
       )}
+      {simulation?.status === SimulationStatus.Success &&
+        simulation.results.length > 1 && (
+          <div className="flex flex-col gap-8 mt-8">
+            <hr />
+            <h2 className="text-xl font-bold">Previous results</h2>
+            <div className="flex flex-col gap-2">
+              {simulation.results.map(result => (
+                <Link
+                  key={result.id}
+                  to={`?id=${simulation.id}&result=${result.id}`}
+                  className="flex justify-between border-b pb-2"
+                >
+                  <p className="underline">Simulation {result.id.split('-')[0]} </p>{' '}
+                  <span>{new Date(result.createdAt).toLocaleString('en-US')}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
     </div>
   );
 }

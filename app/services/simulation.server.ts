@@ -21,7 +21,29 @@ export const scheduleSimulation = async (
   carConsumption: Simulation['carConsumption'],
   chargingPower: Simulation['chargingPower']
 ) => {
-  const [simulation] = await db
+  const [existingSimulation] = await db
+    .select()
+    .from(simulationsTable)
+    .where(
+      and(
+        eq(simulationsTable.numChargePoints, numChargePoints),
+        eq(simulationsTable.arrivalMultiplier, arrivalMultiplier),
+        eq(simulationsTable.carConsumption, carConsumption),
+        eq(simulationsTable.chargingPower, chargingPower)
+      )
+    )
+    .limit(1);
+
+  if (existingSimulation) {
+    await db
+      .update(simulationsTable)
+      .set({ status: SimulationStatus.Scheduled })
+      .where(eq(simulationsTable.id, existingSimulation.id));
+
+    return existingSimulation.id;
+  }
+
+  const [newSimulation] = await db
     .insert(simulationsTable)
     .values({
       numChargePoints,
@@ -31,7 +53,7 @@ export const scheduleSimulation = async (
     })
     .returning();
 
-  return simulation.id;
+  return newSimulation.id;
 };
 
 export async function startSimulation(simulation: Simulation) {
