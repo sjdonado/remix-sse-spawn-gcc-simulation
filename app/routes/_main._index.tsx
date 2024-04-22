@@ -136,7 +136,6 @@ export default function HomePage() {
 
           setSimulation({
             ...simulation,
-            status: SimulationStatus.Success,
             results: [newSimulationResult, ...simulation.results],
           });
         }
@@ -145,6 +144,10 @@ export default function HomePage() {
           eventSource.close();
           setTimeout(() => {
             setLoading(undefined);
+            setSimulation({
+              ...simulation,
+              status: SimulationStatus.Success,
+            });
           }, 500);
         }
       };

@@ -44,6 +44,6 @@
   }
 
   .loading {
-    height: calc(100vh - 20rem);
+    height: calc(100vh - 26rem);
   }
 }
