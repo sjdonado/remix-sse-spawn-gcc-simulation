@@ -40,10 +40,10 @@
   }
 
   .custom-table>table>tbody>tr>td {
-    @apply whitespace-nowrap px-6 py-4 text-sm;
+    @apply px-6 py-4 text-sm;
   }
 
   .loading {
-    height: calc(100vh - 24rem);
+    height: calc(100vh - 20rem);
   }
 }

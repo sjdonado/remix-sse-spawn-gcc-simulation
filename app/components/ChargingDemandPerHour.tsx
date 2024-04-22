@@ -45,7 +45,7 @@ const ChargingDemandPerHour = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-lg font-medium">
+      <h3 className="text-lg font-medium text-center">
         Day with most charging events ({dayWithMostEvents[0]}) - Charging demand per hour
       </h3>
       <div style={{ width: '100%', height: 300 }}>

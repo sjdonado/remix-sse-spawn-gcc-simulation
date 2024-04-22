@@ -40,7 +40,7 @@ const ChargingSummaryTable = ({
         </tr>
         <tr>
           <td>Concurrency Factor</td>
-          <td>{concurrencyFactor * 100}%</td>
+          <td>{(concurrencyFactor * 100).toFixed(2)}%</td>
         </tr>
       </tbody>
     </table>

@@ -167,7 +167,7 @@ export default function HomePage() {
         method="post"
         className="m-auto flex max-w-3xl flex-col gap-4"
       >
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <Input
             name="numChargePoints"
             type="number"
@@ -200,12 +200,12 @@ export default function HomePage() {
       {loading && <ProgressBar progress={loading.percentage} message={loading.message} />}
       {simulation?.status === SimulationStatus.Success && simulationResult && (
         <div className="flex flex-col gap-8">
-          <div className="flex flex-col">
+          <div className="flex items-center flex-col gap-1">
             <h2 className="text-xl font-bold">
               Simulation {simulationResult.id.split('-')[0]} ({simulationResult.createdAt}
               )
             </h2>
-            <p className="text-slate-500">
+            <p className="text-sm text-slate-500">
               Elapsed time: {simulationResult.elapsedTime.toFixed(2)} seconds
             </p>
           </div>
